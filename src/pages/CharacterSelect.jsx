@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { UserPlus } from 'lucide-react';
 import CharacterCard from '../components/character/CharacterCard';
 import CharacterForm from '../components/character/CharacterForm';
-import { createPageUrl } from './utils';
 
 export default function CharacterSelect() {
   const [showForm, setShowForm] = useState(false);
@@ -55,7 +54,7 @@ export default function CharacterSelect() {
 
   const handlePlay = (characterId) => {
     sessionStorage.setItem('selectedCharacterId', characterId);
-    window.location.href = createPageUrl('SceneView');
+    window.location.href = '/SceneView';
   };
 
   const handleCreateCharacter = (data) => {

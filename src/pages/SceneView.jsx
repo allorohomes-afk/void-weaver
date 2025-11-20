@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createPageUrl } from './utils';
 import StatsPanel from '../components/scene/StatsPanel';
 import RelationshipsSummary from '../components/scene/RelationshipsSummary';
 import ChoiceButton from '../components/scene/ChoiceButton';
@@ -16,7 +15,7 @@ export default function SceneView() {
   useEffect(() => {
     const id = sessionStorage.getItem('selectedCharacterId');
     if (!id) {
-      window.location.href = createPageUrl('CharacterSelect');
+      window.location.href = '/CharacterSelect';
     } else {
       setCharacterId(id);
     }
@@ -188,7 +187,7 @@ export default function SceneView() {
 
   const handleBackToCharacters = () => {
     sessionStorage.removeItem('selectedCharacterId');
-    window.location.href = createPageUrl('CharacterSelect');
+    window.location.href = '/CharacterSelect';
   };
 
   if (!characterId || characterLoading || !character) {
