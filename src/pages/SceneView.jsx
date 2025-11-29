@@ -34,7 +34,7 @@ export default function SceneView() {
   useEffect(() => {
     const initializeCharacter = async () => {
       if (character && !character.current_scene_id) {
-        const scenes = await base44.entities.Scene.filter({ key: 'start_scene' });
+        const scenes = await base44.entities.Scene.filter({ key: 'first_watch_start' });
         if (scenes.length > 0) {
           await base44.entities.Character.update(character.id, {
             current_scene_id: scenes[0].id
@@ -247,14 +247,23 @@ export default function SceneView() {
               <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700 text-center">
                 <h2 className="text-2xl font-bold text-white mb-4">The End</h2>
                 <p className="text-slate-300 mb-6">This chapter has concluded</p>
-                <Button 
-                  onClick={handleBackToCharacters}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                >
-                  Return to Character Selection
-                </Button>
+                <div className="flex justify-center gap-4">
+                  <Button 
+                    onClick={() => {}} 
+                    variant="outline"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
+                  >
+                    Reflect
+                  </Button>
+                  <Button 
+                    onClick={handleBackToCharacters}
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                  >
+                    Return to Character Selection
+                  </Button>
+                </div>
               </div>
-            ) : (
+            ) : choices.length > 0 ? (
               <div className="space-y-3">
                 {choices.map((choice) => (
                   <ChoiceButton
@@ -270,6 +279,10 @@ export default function SceneView() {
                     <span>Processing your choice...</span>
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="bg-slate-800/80 backdrop-blur rounded-lg p-6 border border-slate-700 text-center">
+                <p className="text-slate-400 italic">No choices are defined for this scene yet.</p>
               </div>
             )}
           </div>
