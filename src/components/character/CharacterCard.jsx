@@ -30,7 +30,7 @@ export default function CharacterCard({ character, onPlay }) {
           className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold"
         >
           <Play className="w-4 h-4 mr-2" />
-          Play
+          {character.current_scene_id ? 'Continue' : 'Start'}
         </Button>
       </CardContent>
     </Card>
