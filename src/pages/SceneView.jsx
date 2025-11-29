@@ -159,20 +159,70 @@ export default function SceneView() {
         });
       }
 
-      // Balance energies
-      const updatedChar = await base44.entities.Character.filter({ id: character.id });
-      if (updatedChar.length > 0) {
-        const char = updatedChar[0];
-        const balancedUpdates = {};
-        
-        if (char.masculine_energy < 0) balancedUpdates.masculine_energy = 0;
-        if (char.masculine_energy > 100) balancedUpdates.masculine_energy = 100;
-        if (char.feminine_energy < 0) balancedUpdates.feminine_energy = 0;
-        if (char.feminine_energy > 100) balancedUpdates.feminine_energy = 100;
+      // Evaluate Balance Workflow
+      const updatedCharList = await base44.entities.Character.filter({ id: character.id });
+      if (updatedCharList.length > 0) {
+        const char = updatedCharList[0];
+        let { 
+          masculine_energy = 50, 
+          feminine_energy = 50,
+          presence = 0,
+          insight = 0,
+          resolve = 0,
+          care = 0,
+          fear_freeze = 0
+        } = char;
 
-        if (Object.keys(balancedUpdates).length > 0) {
-          await base44.entities.Character.update(character.id, balancedUpdates);
+        // 1. Clamp raw energy
+        masculine_energy = Math.max(0, Math.min(100, masculine_energy));
+        feminine_energy = Math.max(0, Math.min(100, feminine_energy));
+
+        // 2. Compute difference
+        const diff = masculine_energy - feminine_energy;
+        let zone = null;
+
+        // 3. Determine Zone
+        if (diff >= -10 && diff <= 10) {
+          zone = 'balanced';
+        } else if (diff >= 15) {
+          zone = 'shadow_masculine';
+        } else if (diff <= -15) {
+          zone = 'shadow_feminine';
         }
+
+        // 4. Apply side-effects based on zone
+        if (zone === 'balanced') {
+          presence += 1;
+          insight += 1;
+          fear_freeze -= 1;
+        } else if (zone === 'shadow_masculine') {
+          presence += 1;
+          resolve += 1;
+          care -= 1;
+          insight -= 1;
+          fear_freeze += 1;
+        } else if (zone === 'shadow_feminine') {
+          care += 1;
+          insight += 1;
+          presence -= 1;
+          resolve -= 1;
+          fear_freeze += 1;
+        }
+
+        // 5. Clamp affected stats (0-100)
+        const clamp = (val) => Math.max(0, Math.min(100, val));
+        
+        const balanceUpdates = {
+          masculine_energy,
+          feminine_energy,
+          presence: clamp(presence),
+          insight: clamp(insight),
+          resolve: clamp(resolve),
+          care: clamp(care),
+          fear_freeze: clamp(fear_freeze)
+        };
+
+        await base44.entities.Character.update(character.id, balanceUpdates);
       }
 
       // Refetch everything
