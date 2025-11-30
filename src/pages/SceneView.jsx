@@ -101,9 +101,25 @@ export default function SceneView() {
           // Apply relationship changes
           if (effects.relationships && effects.relationships.length > 0) {
             for (const relEffect of effects.relationships) {
+              let targetNpcId = relEffect.npc_id;
+
+              // Resolve npc_key if npc_id is missing
+              if (!targetNpcId && relEffect.npc_key) {
+                const targetNpc = npcs.find(n => 
+                  (n.key && n.key === relEffect.npc_key) || 
+                  (n.name && n.name.toLowerCase() === relEffect.npc_key.toLowerCase())
+                );
+                if (targetNpc) targetNpcId = targetNpc.id;
+              }
+
+              if (!targetNpcId) {
+                console.warn('Could not find NPC for effect:', relEffect);
+                continue;
+              }
+
               const existingRels = await base44.entities.Relationship.filter({
                 character_id: character.id,
-                npc_id: relEffect.npc_id
+                npc_id: targetNpcId
               });
 
               if (existingRels.length > 0) {
@@ -117,7 +133,7 @@ export default function SceneView() {
               } else {
                 await base44.entities.Relationship.create({
                   character_id: character.id,
-                  npc_id: relEffect.npc_id,
+                  npc_id: targetNpcId,
                   trust: relEffect.trust || 0,
                   respect: relEffect.respect || 0,
                   safety: relEffect.safety || 0,
