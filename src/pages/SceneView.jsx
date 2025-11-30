@@ -332,22 +332,7 @@ export default function SceneView() {
                 <h2 className="text-2xl font-bold text-white mb-4">The End</h2>
                 <p className="text-slate-300 mb-6">This chapter has concluded</p>
                 <div className="flex justify-center gap-4">
-                  {currentScene.key && currentScene.key.startsWith('chapter_end') && (
-                    <Button 
-                      onClick={async () => {
-                        const scenes = await base44.entities.Scene.filter({ key: 'lantern_start' });
-                        if (scenes.length > 0) {
-                          await base44.entities.Character.update(character.id, {
-                            current_scene_id: scenes[0].id
-                          });
-                          queryClient.invalidateQueries();
-                        }
-                      }} 
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white border-none"
-                    >
-                      Begin Mission 3: The Lantern Test
-                    </Button>
-                  )}
+
                   <Button 
                     onClick={handleBackToCharacters}
                     className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
