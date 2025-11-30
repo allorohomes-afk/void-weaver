@@ -7,25 +7,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, UserPlus, Loader2, Sparkles } from 'lucide-react';
 import { base44 } from "@/api/base44Client";
 
-export default function CharacterForm({ onSubmit, onCancel, isCreating }) {
+export default function CharacterForm({ onSubmit, onCancel, isCreating, initialData }) {
   const [formData, setFormData] = useState({
-    name: '',
-    pronouns: '',
-    skin_tone: '',
-    body_type_primary: '',
-    body_type_secondary: '',
-    hair_length: '',
-    hair_texture: '',
-    hair_color: '',
-    gender_presentation: '',
-    age_range: '',
-    face_vibe: '',
-    outfit_style: 'field'
+    name: initialData?.name || '',
+    pronouns: initialData?.pronouns || '',
+    skin_tone: initialData?.skin_tone || '',
+    body_type_primary: initialData?.body_type_primary || '',
+    body_type_secondary: initialData?.body_type_secondary || '',
+    hair_length: initialData?.hair_length || '',
+    hair_texture: initialData?.hair_texture || '',
+    hair_color: initialData?.hair_color || '',
+    gender_presentation: initialData?.gender_presentation || '',
+    age_range: initialData?.age_range || '',
+    face_vibe: initialData?.face_vibe || '',
+    outfit_style: initialData?.outfit_style || 'field'
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPortrait, setGeneratedPortrait] = useState(null);
-  const [generationPrompt, setGenerationPrompt] = useState('');
+  const [generatedPortrait, setGeneratedPortrait] = useState(initialData?.portrait_url || null);
+  const [generationPrompt, setGenerationPrompt] = useState(initialData?.character_visual_prompt || '');
 
   const bodyTypes = ["Lean", "Average", "Broad", "Soft", "Stocky", "Tall", "Short", "Curvy", "Athletic"];
   
@@ -109,7 +109,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating }) {
     <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 max-h-[80vh] overflow-y-auto">
       <CardHeader className="border-b border-slate-700 sticky top-0 bg-slate-900/95 backdrop-blur z-10">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white">Create New Character</CardTitle>
+          <CardTitle className="text-white">{initialData ? 'Edit Character' : 'Create New Character'}</CardTitle>
           <Button 
             variant="ghost" 
             size="icon"
@@ -286,33 +286,33 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating }) {
             Cancel
           </Button>
           
-          {!generatedPortrait ? (
-            <Button 
-              type="button"
-              onClick={generateCharacterPortrait}
-              disabled={!isFormValid || isGenerating}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Portrait...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Portrait
-                </>
-              )}
-            </Button>
-          ) : (
+          <Button 
+            type="button"
+            onClick={generateCharacterPortrait}
+            disabled={!isFormValid || isGenerating}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                {generatedPortrait ? 'Regenerate' : 'Generate'}
+              </>
+            )}
+          </Button>
+
+          {generatedPortrait && (
              <Button 
               type="submit"
               disabled={isCreating || isGenerating}
               className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
               <UserPlus className="w-4 h-4 mr-2" />
-              {isCreating ? 'Saving Character...' : 'Confirm & Create'}
+              {isCreating ? 'Saving...' : (initialData ? 'Update Character' : 'Confirm & Create')}
             </Button>
           )}
         </div>

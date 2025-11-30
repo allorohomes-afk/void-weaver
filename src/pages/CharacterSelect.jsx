@@ -8,6 +8,7 @@ import CharacterForm from '../components/character/CharacterForm';
 
 export default function CharacterSelect() {
   const [showForm, setShowForm] = useState(false);
+  const [editingCharacter, setEditingCharacter] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
@@ -52,13 +53,38 @@ export default function CharacterSelect() {
     }
   });
 
+  const updateCharacterMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      return await base44.entities.Character.update(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      setShowForm(false);
+      setEditingCharacter(null);
+    }
+  });
+
   const handlePlay = (characterId) => {
     sessionStorage.setItem('selectedCharacterId', characterId);
     window.location.href = '/SceneView';
   };
 
   const handleCreateCharacter = (data) => {
-    createCharacterMutation.mutate(data);
+    if (editingCharacter) {
+      updateCharacterMutation.mutate({ id: editingCharacter.id, data });
+    } else {
+      createCharacterMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (character) => {
+    setEditingCharacter(character);
+    setShowForm(true);
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingCharacter(null);
   };
 
   if (!currentUser) {
@@ -90,9 +116,10 @@ export default function CharacterSelect() {
         {showForm && (
           <div className="mb-6">
             <CharacterForm
+              initialData={editingCharacter}
               onSubmit={handleCreateCharacter}
-              onCancel={() => setShowForm(false)}
-              isCreating={createCharacterMutation.isPending}
+              onCancel={handleCancel}
+              isCreating={createCharacterMutation.isPending || updateCharacterMutation.isPending}
             />
           </div>
         )}
@@ -111,6 +138,7 @@ export default function CharacterSelect() {
                 key={character.id}
                 character={character}
                 onPlay={handlePlay}
+                onEdit={handleEdit}
               />
             ))}
           </div>

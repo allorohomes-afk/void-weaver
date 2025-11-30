@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Calendar, Play } from 'lucide-react';
+import { User, Calendar, Play, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function CharacterCard({ character, onPlay }) {
@@ -31,13 +31,22 @@ export default function CharacterCard({ character, onPlay }) {
           <span>Created {format(new Date(character.created_date), 'MMM d, yyyy')}</span>
         </div>
 
-        <Button 
-          onClick={() => onPlay(character.id)}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold"
-        >
-          <Play className="w-4 h-4 mr-2" />
-          {character.current_scene_id ? 'Continue' : 'Start'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => onPlay(character.id)}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold"
+          >
+            <Play className="w-4 h-4 mr-2" />
+            {character.current_scene_id ? 'Continue' : 'Start'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => onEdit && onEdit(character)}
+            className="border-slate-600 hover:bg-slate-800 text-slate-300"
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
