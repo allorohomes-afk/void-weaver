@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, UserPlus, Loader2, Sparkles, Upload, Camera } from 'lucide-react';
 import { base44 } from "@/api/base44Client";
 import { getLeonardoStyle } from '@/components/cinematicWorkflow';
+import { toast } from "sonner";
 
 export default function CharacterForm({ onSubmit, onCancel, isCreating, initialData }) {
   const [formData, setFormData] = useState({
@@ -58,7 +59,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     
     const uniformDesc = uniformDescriptions[data.outfit_style];
 
-    return `A cinematic portrait of a Warden with ${data.skin_tone} skin, ${data.eye_color} eyes, ${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
+    return `A cinematic portrait of a Warden with ${data.skin_tone} skin, ${data.eye_color ? `${data.eye_color} eyes, ` : ''}${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
   };
 
   const handleFileUpload = async (e) => {
@@ -71,6 +72,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       setFormData(prev => ({ ...prev, reference_photo_url: file_url }));
     } catch (err) {
       console.error("Upload failed:", err);
+      toast.error("Failed to upload image");
     } finally {
       setIsUploading(false);
     }
@@ -83,7 +85,6 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       let result;
 
       if (formData.reference_photo_url) {
-         // Image-to-Image logic (simulated via prompt injection for now as per previous implementation pattern)
          prompt = `
             Use the reference photo as the base.
             Keep core facial features, skin tone, and general proportions.
@@ -107,6 +108,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       return { url: result.url, prompt };
     } catch (error) {
       console.error("Generation failed:", error);
+      toast.error("Failed to generate portrait");
       return null;
     } finally {
       setIsGenerating(false);
@@ -115,7 +117,10 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {
+        toast.error("Character name is required");
+        return;
+    }
 
     // First generate portrait if not already done
     let portraitUrl = generatedPortrait;
@@ -142,8 +147,8 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                      formData.hair_color && formData.age_range && formData.face_vibe;
 
   return (
-    <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 max-h-[80vh] overflow-y-auto">
-      <CardHeader className="border-b border-slate-700 sticky top-0 bg-slate-900/95 backdrop-blur z-10">
+    <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 max-h-[80vh] overflow-y-auto flex flex-col">
+      <CardHeader className="border-b border-slate-700 sticky top-0 bg-slate-900/95 backdrop-blur z-20">
         <div className="flex items-center justify-between">
           <CardTitle className="text-white">{initialData ? 'Edit Character' : 'Create New Character'}</CardTitle>
           <Button 
@@ -156,54 +161,59 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Basic Info */}
+      <CardContent className="p-6 space-y-8 overflow-visible">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Identity Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-white border-b border-slate-700 pb-2">Identity</h3>
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-slate-300">Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="bg-slate-900 border-slate-700 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pronouns" className="text-slate-300">Pronouns</Label>
-              <Input
-                id="pronouns"
-                value={formData.pronouns}
-                onChange={(e) => setFormData({...formData, pronouns: e.target.value})}
-                className="bg-slate-900 border-slate-700 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="age" className="text-slate-300">Age Range</Label>
-              <Input
-                id="age"
-                placeholder="e.g. late 20s, mid 40s"
-                value={formData.age_range}
-                onChange={(e) => setFormData({...formData, age_range: e.target.value})}
-                className="bg-slate-900 border-slate-700 text-white"
-              />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="gender" className="text-slate-300">Gender Presentation</Label>
-              <Input
-                id="gender"
-                placeholder="e.g. androgynous, masculine, high femme"
-                value={formData.gender_presentation}
-                onChange={(e) => setFormData({...formData, gender_presentation: e.target.value})}
-                className="bg-slate-900 border-slate-700 text-white"
-              />
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="text-slate-300">Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="bg-slate-900 border-slate-700 text-white"
+                  placeholder="Character Name"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="pronouns" className="text-slate-300">Pronouns</Label>
+                <Input
+                  id="pronouns"
+                  value={formData.pronouns}
+                  onChange={(e) => setFormData({...formData, pronouns: e.target.value})}
+                  className="bg-slate-900 border-slate-700 text-white"
+                  placeholder="they/them"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="age" className="text-slate-300">Age Range</Label>
+                <Input
+                  id="age"
+                  placeholder="e.g. late 20s, mid 40s"
+                  value={formData.age_range}
+                  onChange={(e) => setFormData({...formData, age_range: e.target.value})}
+                  className="bg-slate-900 border-slate-700 text-white"
+                />
+              </div>
+               <div className="space-y-1.5">
+                <Label htmlFor="gender" className="text-slate-300">Gender Presentation</Label>
+                <Input
+                  id="gender"
+                  placeholder="e.g. androgynous, masculine"
+                  value={formData.gender_presentation}
+                  onChange={(e) => setFormData({...formData, gender_presentation: e.target.value})}
+                  className="bg-slate-900 border-slate-700 text-white"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Appearance */}
+          {/* Appearance Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-white border-b border-slate-700 pb-2">Appearance</h3>
+            
             <div className="space-y-2">
               <Label className="text-slate-300">Body Type (Select up to 2)</Label>
               <div className="flex flex-wrap gap-2">
@@ -226,8 +236,9 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                 })}
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="skin" className="text-slate-300">Skin Tone</Label>
                 <Input
                   id="skin"
@@ -236,19 +247,20 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                   className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="vibe" className="text-slate-300">Face Vibe</Label>
                 <Input
                   id="vibe"
-                  placeholder="e.g. stoic, weary, sharp"
+                  placeholder="e.g. stoic, weary"
                   value={formData.face_vibe}
                   onChange={(e) => setFormData({...formData, face_vibe: e.target.value})}
                   className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
             </div>
+
             <div className="grid grid-cols-3 gap-2">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                  <Label htmlFor="hairlen" className="text-slate-300">Hair Length</Label>
                  <Input
                   id="hairlen"
@@ -257,7 +269,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                   className="bg-slate-900 border-slate-700 text-white"
                  />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                  <Label htmlFor="hairtex" className="text-slate-300">Hair Texture</Label>
                  <Input
                   id="hairtex"
@@ -266,7 +278,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                   className="bg-slate-900 border-slate-700 text-white"
                  />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                  <Label htmlFor="haircol" className="text-slate-300">Hair Color</Label>
                  <Input
                   id="haircol"
@@ -274,21 +286,22 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                   onChange={(e) => setFormData({...formData, hair_color: e.target.value})}
                   className="bg-slate-900 border-slate-700 text-white"
                  />
-                 </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-4 mt-4">
-                 <div className="space-y-2">
-                 <Label htmlFor="eyecol" className="text-slate-300">Eye Color</Label>
-                 <Input
-                  id="eyecol"
-                  value={formData.eye_color}
-                  onChange={(e) => setFormData({...formData, eye_color: e.target.value})}
-                  className="bg-slate-900 border-slate-700 text-white"
-                 />
-                 </div>
-                 </div>
-                 </div>
-                 </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-1.5">
+                  <Label htmlFor="eyecol" className="text-slate-300">Eye Color</Label>
+                  <Input
+                   id="eyecol"
+                   value={formData.eye_color}
+                   onChange={(e) => setFormData({...formData, eye_color: e.target.value})}
+                   className="bg-slate-900 border-slate-700 text-white"
+                  />
+               </div>
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-4 pt-4 border-t border-slate-700">
           <h3 className="text-lg font-medium text-white">Warden Uniform</h3>
@@ -403,6 +416,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
           {generatedPortrait && (
              <Button 
               type="submit"
+              onClick={handleSubmit}
               disabled={isCreating || isGenerating}
               className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
