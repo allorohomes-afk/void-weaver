@@ -6,7 +6,7 @@ import RelationshipsSummary from '../components/scene/RelationshipsSummary';
 import ChoiceButton from '../components/scene/ChoiceButton';
 import { Loader2, ArrowLeft, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { prepareSceneCinematic } from '@/utils/cinematicWorkflow';
+import { prepareSceneCinematic } from '@/components/cinematicWorkflow';
 
 export default function SceneView() {
   const [characterId, setCharacterId] = useState(null);

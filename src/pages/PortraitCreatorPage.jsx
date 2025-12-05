@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Upload, User, ArrowLeft, Camera } from 'lucide-react';
-import { getLeonardoStyle, generateCharacterPortraitFromPhoto } from '@/utils/cinematicWorkflow';
+import { getLeonardoStyle, generateCharacterPortraitFromPhoto } from '@/components/cinematicWorkflow';
 
 export default function PortraitCreatorPage() {
   const [characterId, setCharacterId] = useState(null);
