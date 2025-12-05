@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Calendar, Play, Pencil } from 'lucide-react';
+import { User, Calendar, Play, Pencil, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function CharacterCard({ character, onPlay }) {
+export default function CharacterCard({ character, onPlay, onPortrait }) {
   return (
     <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:border-purple-500 transition-all duration-300">
       <CardContent className="p-6">
@@ -38,6 +38,14 @@ export default function CharacterCard({ character, onPlay }) {
           >
             <Play className="w-4 h-4 mr-2" />
             {character.current_scene_id ? 'Continue' : 'Start'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => onPortrait && onPortrait(character.id)}
+            className="border-slate-600 hover:bg-slate-800 text-slate-300"
+            title="Portrait Studio"
+          >
+            <Camera className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"

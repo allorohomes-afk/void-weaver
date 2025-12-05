@@ -69,6 +69,11 @@ export default function CharacterSelect() {
     window.location.href = '/SceneView';
   };
 
+  const handlePortrait = (characterId) => {
+    sessionStorage.setItem('selectedCharacterId', characterId);
+    window.location.href = '/PortraitCreatorPage';
+  };
+
   const handleCreateCharacter = (data) => {
     if (editingCharacter) {
       updateCharacterMutation.mutate({ id: editingCharacter.id, data });
@@ -139,6 +144,7 @@ export default function CharacterSelect() {
                 character={character}
                 onPlay={handlePlay}
                 onEdit={handleEdit}
+                onPortrait={handlePortrait}
               />
             ))}
           </div>
