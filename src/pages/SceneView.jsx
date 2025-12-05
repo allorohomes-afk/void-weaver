@@ -4,12 +4,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import StatsPanel from '../components/scene/StatsPanel';
 import RelationshipsSummary from '../components/scene/RelationshipsSummary';
 import ChoiceButton from '../components/scene/ChoiceButton';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { prepareSceneCinematic } from '@/utils/cinematicWorkflow';
 
 export default function SceneView() {
   const [characterId, setCharacterId] = useState(null);
   const [isProcessingChoice, setIsProcessingChoice] = useState(false);
+  const [cinematicData, setCinematicData] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(true);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -54,6 +57,15 @@ export default function SceneView() {
     },
     enabled: !!character?.current_scene_id
   });
+
+  useEffect(() => {
+    if (character && currentScene) {
+        setCinematicData(null); // Reset when scene changes
+        prepareSceneCinematic(character.id, currentScene.id).then(data => {
+            setCinematicData(data);
+        }).catch(err => console.error("Cinematic prep failed:", err));
+    }
+  }, [character?.id, currentScene?.id]);
 
   const { data: choices = [] } = useQuery({
     queryKey: ['choices', currentScene?.id],
@@ -320,6 +332,29 @@ export default function SceneView() {
           <div className="lg:col-span-2 space-y-6">
             {/* Scene content */}
             <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700">
+              {cinematicData?.video_url && (
+                  <div className="mb-6 relative rounded-lg overflow-hidden shadow-2xl border border-slate-900">
+                      <img 
+                        src={cinematicData.video_url} 
+                        alt="Scene Cinematic" 
+                        className="w-full h-auto object-cover"
+                      />
+                      {/* Placeholder for actual video player interaction */}
+                      <div className="absolute bottom-4 right-4">
+                          {cinematicData.audio_url && (
+                             <Button 
+                                size="icon" 
+                                variant="secondary" 
+                                className="rounded-full bg-slate-900/80 hover:bg-slate-900 text-white"
+                                onClick={() => setIsPlaying(!isPlaying)}
+                             >
+                                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                             </Button>
+                          )}
+                      </div>
+                  </div>
+              )}
+
               <h1 className="text-3xl font-bold text-white mb-4">{currentScene.title}</h1>
               <div className="text-slate-200 leading-relaxed whitespace-pre-wrap">
                 {currentScene.body_text}
