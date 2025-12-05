@@ -18,6 +18,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     hair_length: initialData?.hair_length || '',
     hair_texture: initialData?.hair_texture || '',
     hair_color: initialData?.hair_color || '',
+    eye_color: initialData?.eye_color || '',
     gender_presentation: initialData?.gender_presentation || '',
     age_range: initialData?.age_range || '',
     face_vibe: initialData?.face_vibe || '',
@@ -57,7 +58,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     
     const uniformDesc = uniformDescriptions[data.outfit_style];
 
-    return `A cinematic portrait of a Warden with ${data.skin_tone} skin, ${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
+    return `A cinematic portrait of a Warden with ${data.skin_tone} skin, ${data.eye_color} eyes, ${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
   };
 
   const handleFileUpload = async (e) => {
@@ -273,10 +274,21 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                   onChange={(e) => setFormData({...formData, hair_color: e.target.value})}
                   className="bg-slate-900 border-slate-700 text-white"
                  />
-              </div>
-            </div>
-          </div>
-        </div>
+                 </div>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4 mt-4">
+                 <div className="space-y-2">
+                 <Label htmlFor="eyecol" className="text-slate-300">Eye Color</Label>
+                 <Input
+                  id="eyecol"
+                  value={formData.eye_color}
+                  onChange={(e) => setFormData({...formData, eye_color: e.target.value})}
+                  className="bg-slate-900 border-slate-700 text-white"
+                 />
+                 </div>
+                 </div>
+                 </div>
+                 </div>
 
         <div className="space-y-4 pt-4 border-t border-slate-700">
           <h3 className="text-lg font-medium text-white">Warden Uniform</h3>
