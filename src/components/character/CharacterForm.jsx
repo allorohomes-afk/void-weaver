@@ -20,10 +20,12 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     gender_presentation: initialData?.gender_presentation || '',
     age_range: initialData?.age_range || '',
     face_vibe: initialData?.face_vibe || '',
-    outfit_style: initialData?.outfit_style || 'field'
+    outfit_style: initialData?.outfit_style || 'field',
+    reference_photo_url: initialData?.reference_photo_url || ''
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [generatedPortrait, setGeneratedPortrait] = useState(initialData?.portrait_url || null);
   const [generationPrompt, setGenerationPrompt] = useState(initialData?.character_visual_prompt || '');
 
@@ -57,13 +59,45 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     return `A cinematic portrait of a Warden with ${data.skin_tone} skin, ${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, reference_photo_url: file_url }));
+    } catch (err) {
+      console.error("Upload failed:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const generateCharacterPortrait = async () => {
     setIsGenerating(true);
     try {
-      const prompt = buildCharacterVisualPrompt(formData);
+      let prompt;
+      let result;
+
+      if (formData.reference_photo_url) {
+         // Image-to-Image logic (simulated via prompt injection for now as per previous implementation pattern)
+         prompt = `
+            Use the reference photo as the base.
+            Keep core facial features, skin tone, and general proportions.
+            Transform into a Warden from "Warden Saga".
+            Outfit: ${formData.outfit_style} uniform.
+            Visuals: ${buildCharacterVisualPrompt(formData)}.
+            Style: ${getLeonardoStyle()}
+            Ref: ${formData.reference_photo_url}
+          `;
+      } else {
+         prompt = buildCharacterVisualPrompt(formData);
+      }
+      
       setGenerationPrompt(prompt);
       
-      const result = await base44.integrations.Core.GenerateImage({
+      result = await base44.integrations.Core.GenerateImage({
         prompt: prompt
       });
       
@@ -263,6 +297,54 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Reference Photo Upload */}
+        <div className="space-y-4 pt-4 border-t border-slate-700">
+           <h3 className="text-lg font-medium text-white">Visual Reference (Optional)</h3>
+           <div className="flex items-center gap-4">
+              {formData.reference_photo_url ? (
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-600">
+                      <img src={formData.reference_photo_url} alt="Ref" className="w-full h-full object-cover" />
+                      <Button
+                          size="icon"
+                          variant="secondary"
+                          className="absolute top-1 right-1 h-6 w-6 bg-slate-900/80 hover:bg-slate-900"
+                          onClick={() => setFormData({...formData, reference_photo_url: ''})}
+                      >
+                          <X className="h-3 w-3 text-white" />
+                      </Button>
+                  </div>
+              ) : (
+                  <div 
+                      onClick={() => document.getElementById('form-file-upload').click()}
+                      className="w-24 h-24 rounded-lg border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-slate-800/50 transition-colors"
+                  >
+                      {isUploading ? <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" /> : <Camera className="h-6 w-6 text-slate-500" />}
+                  </div>
+              )}
+              <div className="flex-1">
+                  <p className="text-sm text-slate-400 mb-2">Upload a selfie or reference photo to personalize the generation.</p>
+                  <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => document.getElementById('form-file-upload').click()}
+                      disabled={isUploading}
+                      className="border-slate-600 text-slate-300"
+                  >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {isUploading ? 'Uploading...' : 'Upload Photo'}
+                  </Button>
+                  <input 
+                      id="form-file-upload" 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                  />
+              </div>
+           </div>
         </div>
 
         {/* Preview Section */}
