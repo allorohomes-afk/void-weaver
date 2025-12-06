@@ -3,13 +3,16 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Upload, User, ArrowLeft, Camera } from 'lucide-react';
+import { Loader2, Upload, User, ArrowLeft, Camera, Save, History, RotateCcw } from 'lucide-react';
 import { getLeonardoStyle, generateCharacterPortraitFromPhoto } from '@/components/cinematicWorkflow';
+import PortraitHistoryList from '@/components/character/PortraitHistoryList';
 
 export default function PortraitCreatorPage() {
   const [characterId, setCharacterId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     const id = sessionStorage.getItem('selectedCharacterId');
@@ -60,13 +63,43 @@ export default function PortraitCreatorPage() {
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      await generateCharacterPortraitFromPhoto(characterId);
-      refetch();
+      const res = await generateCharacterPortraitFromPhoto(characterId);
+      setPreviewUrl(res.portrait_url);
     } catch (err) {
-        console.error(err);
+      console.error(err);
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleSavePortrait = async () => {
+    if (!previewUrl) return;
+    try {
+        await base44.functions.invoke('saveCharacterPortrait', {
+            character_id: characterId,
+            portrait_url: previewUrl,
+            notes: "Generated via Portrait Creator"
+        });
+        setPreviewUrl(null);
+        refetch();
+    } catch (err) {
+        console.error("Failed to save portrait", err);
+    }
+  };
+
+  const handleRevert = async (historyItem) => {
+      try {
+          await base44.functions.invoke('saveCharacterPortrait', {
+              character_id: characterId,
+              portrait_url: historyItem.portrait_url,
+              notes: `Reverted to version from ${new Date(historyItem.created_date).toLocaleDateString()}`,
+              reverted_from_id: historyItem.id
+          });
+          refetch();
+          setHistoryOpen(false);
+      } catch (err) {
+          console.error("Revert failed", err);
+      }
   };
 
   if (!character) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading...</div>;
@@ -160,14 +193,48 @@ export default function PortraitCreatorPage() {
                 </div>
             </div>
 
-            {character.portrait_url && (
+            {(previewUrl || character.portrait_url) && (
                 <div className="border-t border-slate-800 pt-6 text-center">
-                     <h3 className="text-lg text-white font-medium mb-4">Result</h3>
-                     <div className="w-64 h-64 mx-auto rounded-lg overflow-hidden border-2 border-indigo-500 shadow-2xl shadow-indigo-900/20">
-                        <img src={character.portrait_url} alt="Result" className="w-full h-full object-cover" />
+                     <h3 className="text-lg text-white font-medium mb-4">{previewUrl ? "Preview (Unsaved)" : "Current Portrait"}</h3>
+                     <div className="w-64 h-64 mx-auto rounded-lg overflow-hidden border-2 border-indigo-500 shadow-2xl shadow-indigo-900/20 relative">
+                        <img src={previewUrl || character.portrait_url} alt="Result" className="w-full h-full object-cover" />
                      </div>
+
+                     {previewUrl && (
+                        <div className="mt-4 flex justify-center gap-3">
+                            <Button 
+                                onClick={handleSavePortrait}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            >
+                                <Save className="w-4 h-4 mr-2" />
+                                Save New Portrait
+                            </Button>
+                            <Button 
+                                variant="outline"
+                                onClick={() => setPreviewUrl(null)}
+                                className="border-slate-600 text-slate-300"
+                            >
+                                Discard
+                            </Button>
+                        </div>
+                     )}
+
+                     {!previewUrl && (
+                         <div className="mt-4">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setHistoryOpen(!historyOpen)}
+                                className="text-slate-400 hover:text-white"
+                            >
+                                <History className="w-4 h-4 mr-2" />
+                                {historyOpen ? "Hide History" : "Portrait History"}
+                            </Button>
+                         </div>
+                     )}
                 </div>
             )}
+            
+            {historyOpen && <PortraitHistoryList characterId={characterId} onRevert={handleRevert} />}
           </CardContent>
         </Card>
       </div>

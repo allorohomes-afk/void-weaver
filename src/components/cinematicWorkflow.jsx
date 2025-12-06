@@ -177,6 +177,6 @@ export const generateCharacterPortraitFromPhoto = async (characterId) => {
     prompt: i2iPrompt 
   });
 
-  await base44.entities.Character.update(characterId, { portrait_url: res.url });
-  return { ...character, portrait_url: res.url };
+  // DO NOT auto-save. Return the URL for preview.
+  return { ...character, portrait_url: res.url, isPreview: true };
 };
