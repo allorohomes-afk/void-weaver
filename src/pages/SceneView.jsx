@@ -44,18 +44,23 @@ export default function SceneView() {
   // Initialize character with start scene if needed
   useEffect(() => {
     const initializeCharacter = async () => {
-      if (character && !character.current_scene_id) {
-        const scenes = await base44.entities.Scene.filter({ key: 'first_watch_start' });
-        if (scenes.length > 0) {
-          await base44.entities.Character.update(character.id, {
-            current_scene_id: scenes[0].id
-          });
-          refetchCharacter();
+      if (character) {
+        // Apply temporal effects on scene load
+        await base44.functions.invoke('applyLongTermEffects', { character_id: character.id });
+        
+        if (!character.current_scene_id) {
+            const scenes = await base44.entities.Scene.filter({ key: 'first_watch_start' });
+            if (scenes.length > 0) {
+              await base44.entities.Character.update(character.id, {
+                current_scene_id: scenes[0].id
+              });
+              refetchCharacter();
+            }
         }
       }
     };
     initializeCharacter();
-  }, [character]);
+  }, [character?.id, character?.current_scene_id]);
 
   const { data: currentScene } = useQuery({
     queryKey: ['scene', character?.current_scene_id],
@@ -188,157 +193,16 @@ export default function SceneView() {
     setIsProcessingChoice(true);
     
     try {
-      // Apply effects if effect_script_id exists
-      if (choice.effect_script_id) {
-        const scripts = await base44.entities.EffectScript.filter({ id: choice.effect_script_id });
-        if (scripts.length > 0) {
-          const effectScript = scripts[0];
-          setLastChoiceEffect(effectScript); // Update Debug HUD
-          const effects = effectScript.effect_json;
+      // Process Choice (Stats, History, Political) on Backend
+      const processRes = await base44.functions.invoke('processChoice', {
+          character_id: character.id,
+          choice_id: choice.id,
+          scene_id: currentScene.id
+      });
 
-          // Apply stat changes
-          if (effects.stats) {
-            const updates = {};
-            Object.keys(effects.stats).forEach(stat => {
-              updates[stat] = (character[stat] || 0) + effects.stats[stat];
-            });
-            await base44.entities.Character.update(character.id, updates);
-          }
-
-          // Apply relationship changes
-          if (effects.relationships && effects.relationships.length > 0) {
-            for (const relEffect of effects.relationships) {
-              let targetNpcId = relEffect.npc_id;
-
-              // Resolve npc_key if npc_id is missing
-              if (!targetNpcId && relEffect.npc_key) {
-                const targetNpc = npcs.find(n => 
-                  (n.key && n.key === relEffect.npc_key) || 
-                  (n.name && n.name.toLowerCase() === relEffect.npc_key.toLowerCase())
-                );
-                if (targetNpc) targetNpcId = targetNpc.id;
-              }
-
-              if (!targetNpcId) {
-                console.warn('Could not find NPC for effect:', relEffect);
-                continue;
-              }
-
-              const existingRels = await base44.entities.Relationship.filter({
-                character_id: character.id,
-                npc_id: targetNpcId
-              });
-
-              if (existingRels.length > 0) {
-                const rel = existingRels[0];
-                await base44.entities.Relationship.update(rel.id, {
-                  trust: (rel.trust || 0) + (relEffect.trust || 0),
-                  respect: (rel.respect || 0) + (relEffect.respect || 0),
-                  safety: (rel.safety || 0) + (relEffect.safety || 0),
-                  influence: (rel.influence || 0) + (relEffect.influence || 0)
-                });
-              } else {
-                await base44.entities.Relationship.create({
-                  character_id: character.id,
-                  npc_id: targetNpcId,
-                  trust: relEffect.trust || 0,
-                  respect: relEffect.respect || 0,
-                  safety: relEffect.safety || 0,
-                  influence: relEffect.influence || 0
-                });
-              }
-            }
-          }
-
-          // Apply faction changes
-          if (effects.factions && effects.factions.length > 0) {
-            for (const factionEffect of effects.factions) {
-              const existingStatuses = await base44.entities.CharacterFactionStatus.filter({
-                character_id: character.id,
-                faction_id: factionEffect.faction_id
-              });
-
-              if (existingStatuses.length > 0) {
-                const status = existingStatuses[0];
-                await base44.entities.CharacterFactionStatus.update(status.id, {
-                  alignment: (status.alignment || 0) + (factionEffect.alignment || 0)
-                });
-              } else {
-                await base44.entities.CharacterFactionStatus.create({
-                  character_id: character.id,
-                  faction_id: factionEffect.faction_id,
-                  alignment: factionEffect.alignment || 0
-                });
-              }
-            }
-          }
-        }
-      }
-
-      // Evaluate Balance Workflow
-      const updatedCharList = await base44.entities.Character.filter({ id: character.id });
-      if (updatedCharList.length > 0) {
-        const char = updatedCharList[0];
-        let { 
-          masculine_energy = 50, 
-          feminine_energy = 50,
-          presence = 0,
-          insight = 0,
-          resolve = 0,
-          care = 0,
-          fear_freeze = 0
-        } = char;
-
-        // 1. Clamp raw energy
-        masculine_energy = Math.max(0, Math.min(100, masculine_energy));
-        feminine_energy = Math.max(0, Math.min(100, feminine_energy));
-
-        // 2. Compute difference
-        const diff = masculine_energy - feminine_energy;
-        let zone = null;
-
-        // 3. Determine Zone
-        if (diff >= -10 && diff <= 10) {
-          zone = 'balanced';
-        } else if (diff >= 15) {
-          zone = 'shadow_masculine';
-        } else if (diff <= -15) {
-          zone = 'shadow_feminine';
-        }
-
-        // 4. Apply side-effects based on zone
-        if (zone === 'balanced') {
-          presence += 1;
-          insight += 1;
-          fear_freeze -= 1;
-        } else if (zone === 'shadow_masculine') {
-          presence += 1;
-          resolve += 1;
-          care -= 1;
-          insight -= 1;
-          fear_freeze += 1;
-        } else if (zone === 'shadow_feminine') {
-          care += 1;
-          insight += 1;
-          presence -= 1;
-          resolve -= 1;
-          fear_freeze += 1;
-        }
-
-        // 5. Clamp affected stats (0-100)
-        const clamp = (val) => Math.max(0, Math.min(100, val));
-        
-        const balanceUpdates = {
-          masculine_energy,
-          feminine_energy,
-          presence: clamp(presence),
-          insight: clamp(insight),
-          resolve: clamp(resolve),
-          care: clamp(care),
-          fear_freeze: clamp(fear_freeze)
-        };
-
-        await base44.entities.Character.update(character.id, balanceUpdates);
+      // If previously applied, we just proceed with navigation without re-applying logic
+      if (processRes.data?.status === 'already_applied') {
+          console.log("Choice already applied, skipping effects.");
       }
 
       // Handle Reaction and Transition
@@ -396,10 +260,6 @@ export default function SceneView() {
             });
           }
         }
-
-        // Handle NPC Memory (Implicitly based on tone/text for now, or expand entity logic later)
-        // For now we just let the reaction display serve as the 'memory' event visually.
-        // In a full implementation, we'd map tone to NPCMemory entity creation here.
 
       } else if (nextSceneId) {
         await base44.entities.Character.update(character.id, {
