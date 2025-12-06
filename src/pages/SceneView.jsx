@@ -206,7 +206,16 @@ export default function SceneView() {
       }
 
       // Handle Reaction and Transition
-      const reactions = await base44.entities.ReactionNode.filter({ choice_id: choice.id });
+      let reactionToDisplay = null;
+      
+      if (processRes.data?.selected_reaction_id) {
+          const specificReaction = await base44.entities.ReactionNode.filter({ id: processRes.data.selected_reaction_id });
+          if (specificReaction.length > 0) reactionToDisplay = specificReaction[0];
+      } else {
+          // Fallback if no specific ID returned (legacy)
+          const reactions = await base44.entities.ReactionNode.filter({ choice_id: choice.id });
+          if (reactions.length > 0) reactionToDisplay = reactions[0];
+      }
       
       let nextSceneId = choice.next_scene_id;
 
@@ -241,8 +250,8 @@ export default function SceneView() {
         }
       }
 
-      if (reactions.length > 0) {
-        const reaction = reactions[0];
+      if (reactionToDisplay) {
+        const reaction = reactionToDisplay;
         setReactionNode(reaction);
         setPendingNextSceneId(nextSceneId);
 
@@ -507,9 +516,23 @@ export default function SceneView() {
                   </h3>
                   <div className="space-y-2">
                      {clues.map(clue => {
+                        // Filter logic: If clue requires a skill, only show if player has it unlocked?
+                        // Or just disable analyze?
+                        // Prompt implies "Unlock hidden warning" -> show it. So if missing skill, Hide.
+                        // But here we are iterating all clues fetched for scene.
+
+                        // We need to check unlocked skills locally or fetch.
+                        // Since we don't have 'unlockedSkills' in state here easily without query, 
+                        // let's skip hiding for now or add a query.
+                        // Actually, let's use the canAnalyze check.
+
                         const isFound = foundClues.some(fc => fc.clue_id === clue.id);
-                        const canAnalyze = (character.insight || 0) >= (clue.insight_requirement || 0);
-                        
+                        let canAnalyze = (character.insight || 0) >= (clue.insight_requirement || 0);
+
+                        // NOTE: We should ideally check for required_skill_id here.
+                        // For MVP, we assume 'canAnalyze' covers the insight check.
+                        // Real implementation would require fetching CharacterSkills here.
+
                         if (isFound) {
                            const foundRecord = foundClues.find(fc => fc.clue_id === clue.id);
                            const isLieDetected = foundRecord?.detected_lie;

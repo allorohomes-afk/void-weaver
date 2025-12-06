@@ -194,7 +194,11 @@ Deno.serve(async (req) => {
             console.error("Skill unlock check failed", err);
         }
 
-        return Response.json({ status: 'success', new_skills: newSkills });
+        return Response.json({ 
+            status: 'success', 
+            new_skills: newSkills, 
+            selected_reaction_id: selectedReaction ? selectedReaction.id : null 
+        });
 
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
