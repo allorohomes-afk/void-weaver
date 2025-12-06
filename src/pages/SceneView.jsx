@@ -19,6 +19,8 @@ export default function SceneView() {
   const [reactionNode, setReactionNode] = useState(null);
   const [pendingNextSceneId, setPendingNextSceneId] = useState(null);
   const [analyzingClueId, setAnalyzingClueId] = useState(null);
+  const [betweenSceneData, setBetweenSceneData] = useState(null);
+  const [isGeneratingBSL, setIsGeneratingBSL] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -343,6 +345,22 @@ export default function SceneView() {
       const reactions = await base44.entities.ReactionNode.filter({ choice_id: choice.id });
       
       let nextSceneId = choice.next_scene_id;
+
+      // Trigger BSL Generation
+      setIsGeneratingBSL(true);
+      try {
+         const bslRes = await base44.functions.invoke('generateBetweenScene', {
+            character_id: character.id,
+            previous_scene_id: currentScene.id,
+            previous_choice_id: choice.id
+         });
+         setBetweenSceneData(bslRes.data);
+      } catch (err) {
+         console.error("BSL Generation failed:", err);
+      } finally {
+         setIsGeneratingBSL(false);
+      }
+
       // SPECIAL LOGIC: Routing to Chapter End based on Balance
       if (choice.label === "Reflect on your path") {
         const { masculine_energy = 50, feminine_energy = 50 } = character;
@@ -366,7 +384,6 @@ export default function SceneView() {
 
         // Handle MicroQuest Unlock
         if (reaction.microquest_id) {
-          // Check if already exists
           const existingMQ = await base44.entities.CharacterMicroQuest.filter({
              character_id: character.id,
              microquest_id: reaction.microquest_id
@@ -404,7 +421,25 @@ export default function SceneView() {
     window.location.href = '/CharacterSelect';
   };
 
-  const handleContinue = async () => {
+  const handleMicroChoice = async (microChoice) => {
+      if (microChoice.effect_script_id) {
+          const scripts = await base44.entities.EffectScript.filter({ id: microChoice.effect_script_id });
+          if (scripts.length > 0) {
+              const effects = scripts[0].effect_json;
+              if (effects.stats) {
+                  const updates = {};
+                  Object.keys(effects.stats).forEach(stat => {
+                      updates[stat] = (character[stat] || 0) + effects.stats[stat];
+                  });
+                  await base44.entities.Character.update(character.id, updates);
+              }
+          }
+      }
+      // Proceed after micro choice
+      completeTransition();
+  };
+
+  const completeTransition = async () => {
     if (pendingNextSceneId) {
        await base44.entities.Character.update(character.id, {
           current_scene_id: pendingNextSceneId
@@ -412,7 +447,30 @@ export default function SceneView() {
        setPendingNextSceneId(null);
     }
     setReactionNode(null);
+    setBetweenSceneData(null);
     queryClient.invalidateQueries();
+  };
+
+  const handleContinue = async () => {
+     // If we have BSL data, we stay in BSL mode until a micro choice is made or skipped (if we want to allow skipping)
+     // But here, let's assume "Continue" moves from Reaction -> BSL -> Next Scene
+     // Actually, the UI renders ReactionNode *or* Scene content. 
+     // We need to update the render logic to show BSL *after* Reaction.
+     
+     // Current flow: Scene -> Choice -> ReactionNode -> [Handle Continue] -> Next Scene
+     // New flow: Scene -> Choice -> ReactionNode -> [Handle Continue] -> BSL -> [Handle BSL] -> Next Scene
+     
+     if (reactionNode) {
+         setReactionNode(null); // Clear reaction to show BSL or Next Scene
+         // If BSL data exists, it will now be rendered by the main component loop if we adjust it
+         if (!betweenSceneData) {
+             completeTransition(); // If no BSL, go straight to next
+         }
+     } else if (betweenSceneData) {
+         completeTransition(); // Skip BSL (if this was a skip button)
+     } else {
+         completeTransition();
+     }
   };
 
   if (!characterId || characterLoading || !character) {
@@ -484,12 +542,59 @@ export default function SceneView() {
                      
                      <Button 
                         onClick={handleContinue}
+                        disabled={isGeneratingBSL}
                         className="min-w-[150px] bg-white text-slate-900 hover:bg-slate-200 font-semibold mt-4"
                      >
-                        Continue <ArrowRight className="w-4 h-4 ml-2" />
+                        {isGeneratingBSL ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Preparing Next Step...
+                            </>
+                        ) : (
+                            <>Continue <ArrowRight className="w-4 h-4 ml-2" /></>
+                        )}
                      </Button>
                   </div>
                </div>
+            ) : betweenSceneData ? (
+                <div className="bg-slate-900/90 backdrop-blur rounded-lg p-8 border border-indigo-500/30 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3">
+                            <Brain className="w-4 h-4" />
+                            <span>Transition Layer: {betweenSceneData.betweenScene.category.replace('_', ' ')}</span>
+                        </div>
+                        <div className="text-lg text-slate-200 leading-relaxed font-serif italic pl-4 border-l-2 border-indigo-500">
+                            {betweenSceneData.betweenScene.text}
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wide">Micro-Skill Opportunity</h3>
+                        <div className="grid grid-cols-1 gap-3">
+                            {betweenSceneData.microChoices.map((mc) => (
+                                <Button
+                                    key={mc.id}
+                                    onClick={() => handleMicroChoice(mc)}
+                                    className="justify-start h-auto py-3 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-400 text-slate-200 transition-all text-left"
+                                >
+                                    <div className="flex flex-col items-start">
+                                        <span className="font-medium">{mc.label}</span>
+                                        <span className="text-[10px] text-slate-500 uppercase mt-1 bg-slate-900 px-1.5 py-0.5 rounded">
+                                            {mc.skill_type.replace('_', ' ')}
+                                        </span>
+                                    </div>
+                                </Button>
+                            ))}
+                            <Button
+                                variant="ghost"
+                                onClick={() => completeTransition()}
+                                className="text-slate-500 hover:text-slate-300"
+                            >
+                                Skip Reflection
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             ) : (
             /* Scene content */
             <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700">
