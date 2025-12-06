@@ -179,7 +179,22 @@ Deno.serve(async (req) => {
             applied: true
         });
 
-        return Response.json({ status: 'success' });
+        // 6. Check Skill Unlocks
+        let newSkills = [];
+        try {
+            // We call the unlock logic directly here or via invoke if passing full context
+            // Since we are in backend, we can just call the logic if we extracted it, 
+            // but for simplicity we'll invoke the function we just created or replicate logic.
+            // Invoking self-hosted function from within function via SDK:
+            const unlockRes = await base44.functions.invoke('unlockSkillIfEligible', { character_id: character.id });
+            if (unlockRes.data && unlockRes.data.new_skills) {
+                newSkills = unlockRes.data.new_skills;
+            }
+        } catch (err) {
+            console.error("Skill unlock check failed", err);
+        }
+
+        return Response.json({ status: 'success', new_skills: newSkills });
 
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
