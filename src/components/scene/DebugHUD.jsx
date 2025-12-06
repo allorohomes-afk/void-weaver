@@ -265,6 +265,16 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
                 </div>
               </section>
 
+              {/* Section G: Skills Link */}
+              <div className="pt-4 border-t border-slate-800">
+                  <Button 
+                      onClick={() => window.location.href = '/SkillTreePage'}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold"
+                  >
+                      <Brain className="w-3 h-3 mr-2" /> View Skill Tree
+                  </Button>
+              </div>
+
             </div>
           </ScrollArea>
         </div>
