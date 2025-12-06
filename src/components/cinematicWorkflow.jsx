@@ -157,11 +157,18 @@ export const generateCharacterPortraitFromPhoto = async (characterId) => {
      return { ...character, portrait_url: res.url };
   }
 
+  const uniformDescriptions = {
+    field: "Dark charcoal longcoat with a subtle sigil on the chest, reinforced shoulders, simple utility belt, dark trousers and boots.",
+    ceremonial: "Deep-blue formal coat with polished metal insignia, refined silhouette, ceremonial trim, polished boots.",
+    covert: "Slate-grey fitted jacket with muted insignia, light armor panels, shorter tactical coat, dark boots and simple gloves."
+  };
+  const uniformDesc = uniformDescriptions[character.outfit_style] || uniformDescriptions.field;
+
   const i2iPrompt = `
     Use the reference photo as the base.
     Keep core facial features, skin tone, and general proportions.
     Transform into a Warden from "Warden Saga".
-    Outfit: ${character.outfit_style} uniform.
+    Outfit: ${uniformDesc}
     Visuals: ${character.character_visual_prompt}.
     Style: ${getLeonardoStyle()}
   `;

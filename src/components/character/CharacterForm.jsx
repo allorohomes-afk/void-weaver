@@ -35,9 +35,9 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
   const bodyTypes = ["Lean", "Average", "Broad", "Soft", "Stocky", "Tall", "Short", "Curvy", "Athletic"];
   
   const uniformDescriptions = {
-    field: "dark charcoal longcoat, subtle sigil, reinforced shoulders, utility belt, boots",
-    ceremonial: "deep-blue formal coat, polished insignia, refined silhouette",
-    covert: "slate-grey fitted jacket, muted insignia, light armor panels"
+    field: "Dark charcoal longcoat with a subtle sigil on the chest, reinforced shoulders, simple utility belt, dark trousers and boots.",
+    ceremonial: "Deep-blue formal coat with polished metal insignia, refined silhouette, ceremonial trim, polished boots.",
+    covert: "Slate-grey fitted jacket with muted insignia, light armor panels, shorter tactical coat, dark boots and simple gloves."
   };
 
   const handleBodyTypeToggle = (type) => {
@@ -85,11 +85,12 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       let result;
 
       if (formData.reference_photo_url) {
+         const uniformDesc = uniformDescriptions[formData.outfit_style];
          prompt = `
             Use the reference photo as the base.
             Keep core facial features, skin tone, and general proportions.
             Transform into a Warden from "Warden Saga".
-            Outfit: ${formData.outfit_style} uniform.
+            Outfit: ${uniformDesc}
             Visuals: ${buildCharacterVisualPrompt(formData)}.
             Style: ${getLeonardoStyle()}
             Ref: ${formData.reference_photo_url}
