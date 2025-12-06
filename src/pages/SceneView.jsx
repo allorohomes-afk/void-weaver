@@ -449,8 +449,7 @@ export default function SceneView() {
                 {currentScene.body_text}
               </div>
             </div>
-
-            </div>
+            )}
 
             {/* Choices */}
             {!reactionNode && (
