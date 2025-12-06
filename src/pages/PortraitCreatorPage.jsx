@@ -41,6 +41,22 @@ export default function PortraitCreatorPage() {
     }
   };
 
+  const handleManualPortraitUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.Character.update(characterId, { portrait_url: file_url });
+      refetch();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleGenerate = async () => {
     setGenerating(true);
     try {
@@ -111,12 +127,37 @@ export default function PortraitCreatorPage() {
                 
                 <Button 
                     onClick={handleGenerate} 
-                    disabled={generating || !character.reference_photo_url}
+                    disabled={generating}
                     className="w-full max-w-xs bg-indigo-600 hover:bg-indigo-700"
                 >
                     {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User className="mr-2 h-4 w-4" />}
-                    Generate Portrait
+                    {character.reference_photo_url ? 'Generate from Photo' : 'Generate from Description'}
                 </Button>
+
+                <div className="pt-4 flex flex-col items-center">
+                    <div className="relative flex py-2 items-center w-full max-w-xs">
+                        <div className="flex-grow border-t border-slate-700"></div>
+                        <span className="flex-shrink mx-4 text-slate-500 text-xs">OR UPLOAD DIRECTLY</span>
+                        <div className="flex-grow border-t border-slate-700"></div>
+                    </div>
+                    
+                    <Button 
+                        variant="outline"
+                        onClick={() => document.getElementById('manual-portrait-upload').click()}
+                        disabled={uploading}
+                        className="w-full max-w-xs border-slate-700 text-slate-300 hover:bg-slate-800"
+                    >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Final Portrait
+                    </Button>
+                    <input 
+                        id="manual-portrait-upload" 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={handleManualPortraitUpload}
+                    />
+                </div>
             </div>
 
             {character.portrait_url && (
