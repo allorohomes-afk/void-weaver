@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import StatsPanel from '../components/scene/StatsPanel';
 import RelationshipsSummary from '../components/scene/RelationshipsSummary';
 import ChoiceButton from '../components/scene/ChoiceButton';
-import { Loader2, ArrowLeft, Play, Pause } from 'lucide-react';
+import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { prepareSceneCinematic } from '@/components/cinematicWorkflow';
 import DebugHUD from '@/components/scene/DebugHUD';
@@ -16,6 +16,8 @@ export default function SceneView() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [showDebugHUD, setShowDebugHUD] = useState(false);
   const [lastChoiceEffect, setLastChoiceEffect] = useState(null);
+  const [reactionNode, setReactionNode] = useState(null);
+  const [pendingNextSceneId, setPendingNextSceneId] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -199,31 +201,6 @@ export default function SceneView() {
         }
       }
 
-      // Move to next scene
-      let nextSceneId = choice.next_scene_id;
-
-      // SPECIAL LOGIC: Routing to Chapter End based on Balance
-      if (choice.label === "Reflect on your path") {
-        const { masculine_energy = 50, feminine_energy = 50 } = character;
-        const diff = masculine_energy - feminine_energy;
-        
-        let targetSceneKey = 'chapter_end_balanced';
-        if (diff >= 15) targetSceneKey = 'chapter_end_shadow_masculine';
-        else if (diff <= -15) targetSceneKey = 'chapter_end_shadow_feminine';
-        else targetSceneKey = 'chapter_end_balanced';
-
-        const targetScenes = await base44.entities.Scene.filter({ key: targetSceneKey });
-        if (targetScenes.length > 0) {
-          nextSceneId = targetScenes[0].id;
-        }
-      }
-
-      if (nextSceneId) {
-        await base44.entities.Character.update(character.id, {
-          current_scene_id: nextSceneId
-        });
-      }
-
       // Evaluate Balance Workflow
       const updatedCharList = await base44.entities.Character.filter({ id: character.id });
       if (updatedCharList.length > 0) {
@@ -290,7 +267,57 @@ export default function SceneView() {
         await base44.entities.Character.update(character.id, balanceUpdates);
       }
 
-      // Refetch everything
+      // Handle Reaction and Transition
+      const reactions = await base44.entities.ReactionNode.filter({ choice_id: choice.id });
+      
+      let nextSceneId = choice.next_scene_id;
+      // SPECIAL LOGIC: Routing to Chapter End based on Balance
+      if (choice.label === "Reflect on your path") {
+        const { masculine_energy = 50, feminine_energy = 50 } = character;
+        const diff = masculine_energy - feminine_energy;
+        
+        let targetSceneKey = 'chapter_end_balanced';
+        if (diff >= 15) targetSceneKey = 'chapter_end_shadow_masculine';
+        else if (diff <= -15) targetSceneKey = 'chapter_end_shadow_feminine';
+        else targetSceneKey = 'chapter_end_balanced';
+
+        const targetScenes = await base44.entities.Scene.filter({ key: targetSceneKey });
+        if (targetScenes.length > 0) {
+          nextSceneId = targetScenes[0].id;
+        }
+      }
+
+      if (reactions.length > 0) {
+        const reaction = reactions[0];
+        setReactionNode(reaction);
+        setPendingNextSceneId(nextSceneId);
+
+        // Handle MicroQuest Unlock
+        if (reaction.microquest_id) {
+          // Check if already exists
+          const existingMQ = await base44.entities.CharacterMicroQuest.filter({
+             character_id: character.id,
+             microquest_id: reaction.microquest_id
+          });
+          if (existingMQ.length === 0) {
+            await base44.entities.CharacterMicroQuest.create({
+              character_id: character.id,
+              microquest_id: reaction.microquest_id,
+              status: "active"
+            });
+          }
+        }
+
+        // Handle NPC Memory (Implicitly based on tone/text for now, or expand entity logic later)
+        // For now we just let the reaction display serve as the 'memory' event visually.
+        // In a full implementation, we'd map tone to NPCMemory entity creation here.
+
+      } else if (nextSceneId) {
+        await base44.entities.Character.update(character.id, {
+          current_scene_id: nextSceneId
+        });
+      }
+
       queryClient.invalidateQueries();
       
     } catch (error) {
@@ -303,6 +330,17 @@ export default function SceneView() {
   const handleBackToCharacters = () => {
     sessionStorage.removeItem('selectedCharacterId');
     window.location.href = '/CharacterSelect';
+  };
+
+  const handleContinue = async () => {
+    if (pendingNextSceneId) {
+       await base44.entities.Character.update(character.id, {
+          current_scene_id: pendingNextSceneId
+       });
+       setPendingNextSceneId(null);
+    }
+    setReactionNode(null);
+    queryClient.invalidateQueries();
   };
 
   if (!characterId || characterLoading || !character) {
@@ -349,7 +387,39 @@ export default function SceneView() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Scene content */}
+            {reactionNode ? (
+               <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700 shadow-xl ring-1 ring-indigo-500/50 animate-in fade-in zoom-in-95 duration-300">
+                  <div className="flex flex-col items-center text-center space-y-6">
+                     <div className="w-16 h-16 rounded-full bg-indigo-900/50 flex items-center justify-center ring-1 ring-indigo-500/30">
+                        {reactionNode.tone === 'soft' || reactionNode.tone === 'hopeful' || reactionNode.tone === 'relieved' ? (
+                           <CheckCircle className="w-8 h-8 text-emerald-400" />
+                        ) : (
+                           <AlertCircle className="w-8 h-8 text-amber-400" />
+                        )}
+                     </div>
+                     
+                     <div className="space-y-2">
+                        <h2 className="text-2xl font-bold text-white">Reaction</h2>
+                        <p className="text-lg text-slate-200 leading-relaxed italic">"{reactionNode.text}"</p>
+                     </div>
+
+                     {reactionNode.microquest_id && (
+                        <div className="px-4 py-2 bg-emerald-900/30 border border-emerald-700/50 rounded-md text-emerald-200 text-sm flex items-center gap-2">
+                           <CheckCircle className="w-4 h-4" />
+                           <span>New MicroQuest Unlocked</span>
+                        </div>
+                     )}
+                     
+                     <Button 
+                        onClick={handleContinue}
+                        className="min-w-[150px] bg-white text-slate-900 hover:bg-slate-200 font-semibold mt-4"
+                     >
+                        Continue <ArrowRight className="w-4 h-4 ml-2" />
+                     </Button>
+                  </div>
+               </div>
+            ) : (
+            /* Scene content */
             <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700">
               {cinematicData?.video_url && (
                   <div className="mb-6 relative rounded-lg overflow-hidden shadow-2xl border border-slate-900">
@@ -380,8 +450,11 @@ export default function SceneView() {
               </div>
             </div>
 
+            </div>
+
             {/* Choices */}
-            {currentScene.is_terminal ? (
+            {!reactionNode && (
+               currentScene.is_terminal ? (
               <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700 text-center">
                 <h2 className="text-2xl font-bold text-white mb-4">The End</h2>
                 <p className="text-slate-300 mb-6">This chapter has concluded</p>
@@ -416,6 +489,7 @@ export default function SceneView() {
               <div className="bg-slate-800/80 backdrop-blur rounded-lg p-6 border border-slate-700 text-center">
                 <p className="text-slate-400 italic">No choices are defined for this scene yet.</p>
               </div>
+            )
             )}
           </div>
 
