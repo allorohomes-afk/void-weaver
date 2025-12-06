@@ -93,12 +93,20 @@ Deno.serve(async (req) => {
 
         const { scene_text, visual_prompt, npc_updates } = llmRes;
 
-        // 4. Generate Image
+        // 4. Generate Image (Using Warden Cinematic Helper)
         let imageUrl = null;
+        let portraitVersion = character.portrait_reference_version || 1;
         try {
-            const finalImagePrompt = `${visual_prompt}. Style: Warden Saga — Cinematic Grounded Art, Realistic rendering, Soft dramatic lighting, Muted color palette. Character reference: ${character.portrait_url ? "Use provided character portrait style" : character.character_visual_prompt}`;
-            const imageRes = await base44.integrations.Core.GenerateImage({ prompt: finalImagePrompt });
-            imageUrl = imageRes.url;
+            const imgRes = await base44.functions.invoke('generateWardenCinematicImage', {
+                character_id: character.id,
+                scene_context: `${prevScene.title} - ${category}. ${visual_prompt}`,
+                visual_role_hint: prevChoice ? prevChoice.visual_role_hint : 'neutral',
+                tone: 'cinematic'
+            });
+            if (imgRes.data && imgRes.data.image_url) {
+                imageUrl = imgRes.data.image_url;
+                portraitVersion = imgRes.data.portrait_version;
+            }
         } catch (err) {
             console.error("Image generation failed", err);
         }
@@ -145,7 +153,8 @@ Deno.serve(async (req) => {
             text: scene_text,
             category: category,
             next_microquest_scene_id: triggeredMQId,
-            image_url: imageUrl
+            image_url: imageUrl,
+            portrait_version: portraitVersion
         });
 
         // 7. Handle NPC Memory Updates
