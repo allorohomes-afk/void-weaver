@@ -7,12 +7,15 @@ import ChoiceButton from '../components/scene/ChoiceButton';
 import { Loader2, ArrowLeft, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { prepareSceneCinematic } from '@/components/cinematicWorkflow';
+import DebugHUD from '@/components/scene/DebugHUD';
 
 export default function SceneView() {
   const [characterId, setCharacterId] = useState(null);
   const [isProcessingChoice, setIsProcessingChoice] = useState(false);
   const [cinematicData, setCinematicData] = useState(null);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [showDebugHUD, setShowDebugHUD] = useState(false);
+  const [lastChoiceEffect, setLastChoiceEffect] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -90,6 +93,21 @@ export default function SceneView() {
     }
   });
 
+  const { data: factions = [] } = useQuery({
+    queryKey: ['factions'],
+    queryFn: async () => {
+      return await base44.entities.Faction.list();
+    }
+  });
+
+  const { data: factionStatuses = [] } = useQuery({
+    queryKey: ['factionStatuses', characterId],
+    queryFn: async () => {
+      return await base44.entities.CharacterFactionStatus.filter({ character_id: characterId });
+    },
+    enabled: !!characterId
+  });
+
   const handleChoice = async (choice) => {
     setIsProcessingChoice(true);
     
@@ -99,6 +117,7 @@ export default function SceneView() {
         const scripts = await base44.entities.EffectScript.filter({ id: choice.effect_script_id });
         if (scripts.length > 0) {
           const effectScript = scripts[0];
+          setLastChoiceEffect(effectScript); // Update Debug HUD
           const effects = effectScript.effect_json;
 
           // Apply stat changes
@@ -404,9 +423,19 @@ export default function SceneView() {
           <div className="space-y-6">
             <StatsPanel character={character} />
             <RelationshipsSummary relationships={relationships} npcs={npcs} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+            </div>
+            </div>
+
+            {/* Debug HUD */}
+            <DebugHUD 
+            character={character}
+            factions={factions}
+            factionStatuses={factionStatuses}
+            lastEffect={lastChoiceEffect}
+            isOpen={showDebugHUD}
+            onToggle={() => setShowDebugHUD(!showDebugHUD)}
+            />
+            </div>
+            </div>
+            );
+            }
