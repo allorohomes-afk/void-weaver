@@ -19,9 +19,17 @@ export default function SkillTreePage() {
     }
   }, []);
 
-  const { data: skills } = useQuery({
+  const { data: skills, refetch: refetchSkills } = useQuery({
     queryKey: ['skills'],
-    queryFn: async () => base44.entities.Skill.list()
+    queryFn: async () => {
+        const list = await base44.entities.Skill.list();
+        if (list.length === 0) {
+            // Auto-seed if empty
+            await base44.functions.invoke('seedSkills');
+            return await base44.entities.Skill.list();
+        }
+        return list;
+    }
   });
 
   const { data: unlockedSkills } = useQuery({

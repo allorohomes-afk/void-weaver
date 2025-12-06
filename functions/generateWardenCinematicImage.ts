@@ -27,6 +27,22 @@ Deno.serve(async (req) => {
         const toneText = tone || 'cinematic';
         const contextText = scene_context || 'a scene in the city';
 
+        // Fetch active skills for modifiers
+        let skillModifiers = "";
+        try {
+            const charSkills = await base44.entities.CharacterSkill.filter({ character_id: character_id });
+            if (charSkills.length > 0) {
+                const allSkills = await base44.entities.Skill.list(); 
+                const activeSkills = allSkills.filter(s => charSkills.some(cs => cs.skill_id === s.id && cs.active));
+                skillModifiers = activeSkills
+                    .map(s => s.cinematic_modifier)
+                    .filter(Boolean)
+                    .join(" ");
+            }
+        } catch (e) {
+            console.error("Failed to fetch skill modifiers", e);
+        }
+
         const uniformDescriptions = {
           field: "Dark charcoal longcoat with a subtle sigil on the chest, reinforced shoulders, simple utility belt, dark trousers and boots.",
           ceremonial: "Deep-blue formal coat with polished metal insignia, refined silhouette, ceremonial trim, polished boots.",
@@ -43,6 +59,7 @@ Deno.serve(async (req) => {
         Scene Context: ${contextText}
         Role/Action: ${roleHint}
         Tone: ${toneText}
+        Skill Vibes/Modifiers: ${skillModifiers}
 
         CRITICAL INSTRUCTIONS:
         - The Warden MUST be the clear central figure.
