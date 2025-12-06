@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { User, Calendar, Play, Pencil, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function CharacterCard({ character, onPlay, onPortrait }) {
+export default function CharacterCard({ character, onPlay, onPortrait, onEdit }) {
   return (
     <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:border-purple-500 transition-all duration-300">
       <CardContent className="p-6">
