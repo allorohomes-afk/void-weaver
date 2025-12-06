@@ -73,76 +73,93 @@ export const buildCinematicPrompt = async (characterId, sceneId) => {
   // 6. Ask LLM for prompt
   const llmResponse = await base44.integrations.Core.InvokeLLM({
     prompt: `
-      I need a video generation prompt for a cinematic clip.
+      I need a visual description for a cinematic scene.
       
       CONTEXT:
-      Character: ${character.name}
-      Uniform: ${uniformDesc}
-      Role/Posture: ${roleDesc}
-      
+      Character Role/Posture: ${roleDesc}
       Scene: ${scene.title}
       Setting: ${scene.body_text}
       Aggressor Presence: ${aggressorDesc}
       Vulnerable Presence: ${vulnerableDesc}
       
       INSTRUCTIONS:
-      Create a video-friendly prompt that summarizes:
-      - Who is present visually (Warden + NPCs)
-      - Where the camera is
-      - What the key action is
-      - Emotional tone
+      Summarize the visual action:
+      - Who is present
+      - Key action / tension
+      - Environment
       
-      ${referenceInstruction}
-      
-      CRITICAL ROLE INSTRUCTION:
-      Under no circumstances should the Warden be depicted as the aggressor unless the Role/Posture explicitly says so. If the Warden is a protector or mediator, show them de-escalating, not attacking.
-      
-      STYLE:
-      "Cinematic, grounded, realistic lighting, muted palette, steady camera, filmic quality. Warden Saga style."
-      
-      Output ONLY the prompt string.
+      Output ONLY the description string.
     `
   });
 
   return {
     video_prompt: llmResponse,
-    outfit_used: outfitStyle
+    outfit_used: outfitStyle,
+    visual_role_hint: visualRoleHint
   };
 };
 
 export const prepareSceneCinematic = async (characterId, sceneId) => {
-  // 1. Check existing
-  const existing = await base44.entities.SceneCinematics.filter({
-    scene_id: sceneId,
-    character_id: characterId 
-  });
+    // 1. Fetch Character to check version
+    const characters = await base44.entities.Character.filter({ id: characterId });
+    const character = characters[0];
+    const currentVersion = character.portrait_reference_version || 1;
 
-  if (existing.length > 0) {
+    // 2. Check existing
+    const existing = await base44.entities.SceneCinematics.filter({
+        scene_id: sceneId,
+        character_id: characterId 
+    });
+
+    if (existing.length > 0) {
+        const record = existing[0];
+        // Check for stale version
+        if ((record.portrait_version || 0) === currentVersion) {
+             return {
+                video_url: record.video_url,
+                audio_url: record.audio_url
+             };
+        }
+        // If stale, we will regenerate below (and update/replace)
+        await base44.entities.SceneCinematics.delete(record.id);
+    }
+
+    // 3. Build context
+    const { video_prompt, visual_role_hint } = await buildCinematicPrompt(characterId, sceneId);
+
+    // 4. Generate "Video" (Cinematic Frame) using Warden Helper
+    let videoUrl = null;
+    try {
+        const imgRes = await base44.functions.invoke('generateWardenCinematicImage', {
+            character_id: characterId,
+            scene_context: video_prompt,
+            visual_role_hint: visual_role_hint,
+            tone: 'cinematic'
+        });
+        if (imgRes.data && imgRes.data.image_url) {
+            videoUrl = imgRes.data.image_url;
+        }
+    } catch (err) {
+        console.error("Warden image generation failed", err);
+        return null; 
+    }
+
+    // 5. Create Record
+    if (videoUrl) {
+        await base44.entities.SceneCinematics.create({
+            scene_id: sceneId,
+            character_id: characterId,
+            video_url: videoUrl,
+            audio_url: null,
+            prompt_used: video_prompt,
+            portrait_version: currentVersion
+        });
+    }
+
     return {
-      video_url: existing[0].video_url,
-      audio_url: existing[0].audio_url
+        video_url: videoUrl,
+        audio_url: null
     };
-  }
-
-  // 2. Build prompt
-  const { video_prompt } = await buildCinematicPrompt(characterId, sceneId);
-
-  // 3. Generate "Video" (Cinematic Frame)
-  const videoRes = await base44.integrations.Core.GenerateImage({ prompt: video_prompt });
-
-  // 4. Create Record
-  await base44.entities.SceneCinematics.create({
-    scene_id: sceneId,
-    character_id: characterId,
-    video_url: videoRes.url,
-    audio_url: null,
-    prompt_used: video_prompt
-  });
-
-  return {
-    video_url: videoRes.url,
-    audio_url: null
-  };
 };
 
 export const generateCharacterPortraitFromPhoto = async (characterId) => {
