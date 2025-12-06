@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Calendar, Play, Pencil, Camera } from 'lucide-react';
+import { User, Calendar, Play, Pencil, Camera, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function CharacterCard({ character, onPlay, onPortrait, onEdit }) {
+export default function CharacterCard({ character, onPlay, onPortrait, onEdit, onDelete }) {
   return (
     <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:border-purple-500 transition-all duration-300">
       <CardContent className="p-6">
@@ -54,7 +54,16 @@ export default function CharacterCard({ character, onPlay, onPortrait, onEdit })
           >
             <Pencil className="w-4 h-4" />
           </Button>
-        </div>
+          {onDelete && (
+            <Button
+              variant="outline"
+              onClick={() => onDelete && onDelete(character)}
+              className="border-slate-600 hover:bg-red-900/30 text-slate-300 hover:text-red-400 hover:border-red-800"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
+          </div>
       </CardContent>
     </Card>
   );

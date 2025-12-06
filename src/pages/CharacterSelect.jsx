@@ -64,6 +64,21 @@ export default function CharacterSelect() {
     }
   });
 
+  const deleteCharacterMutation = useMutation({
+    mutationFn: async (characterId) => {
+      return await base44.entities.Character.delete(characterId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+    }
+  });
+
+  const handleDelete = (character) => {
+    if (window.confirm(`Are you sure you want to delete ${character.name}? This cannot be undone.`)) {
+      deleteCharacterMutation.mutate(character.id);
+    }
+  };
+
   const handlePlay = (characterId) => {
     sessionStorage.setItem('selectedCharacterId', characterId);
     window.location.href = '/SceneView';
@@ -145,6 +160,7 @@ export default function CharacterSelect() {
                 onPlay={handlePlay}
                 onEdit={handleEdit}
                 onPortrait={handlePortrait}
+                onDelete={handleDelete}
               />
             ))}
           </div>
