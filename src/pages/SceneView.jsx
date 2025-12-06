@@ -488,6 +488,7 @@ export default function SceneView() {
               <div className="bg-slate-800/80 backdrop-blur rounded-lg p-6 border border-slate-700 text-center">
                 <p className="text-slate-400 italic">No choices are defined for this scene yet.</p>
               </div>
+            )
             )}
           </div>
 
