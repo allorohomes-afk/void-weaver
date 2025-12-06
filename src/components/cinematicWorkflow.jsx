@@ -27,32 +27,78 @@ export const buildCinematicPrompt = async (characterId, sceneId) => {
   const scenes = await base44.entities.Scene.filter({ id: sceneId });
   const scene = scenes[0];
 
-  // 3. Decide outfit
-  const outfitUsed = character.outfit_style;
+  // 3. Fetch Last Choice (to determine role)
+  // We look for the most recent reaction node for this character to find the choice
+  let visualRoleHint = "neutral";
+  if (character.recent_reaction_node_id) {
+      const reactions = await base44.entities.ReactionNode.filter({ id: character.recent_reaction_node_id });
+      if (reactions.length > 0) {
+          const choices = await base44.entities.Choice.filter({ id: reactions[0].choice_id });
+          if (choices.length > 0 && choices[0].visual_role_hint) {
+              visualRoleHint = choices[0].visual_role_hint;
+          }
+      }
+  }
 
-  // 4. Ask LLM for prompt
+  // 4. Decide outfit & role description
+  const outfitStyle = character.outfit_style || 'field';
+  const uniformDescriptions = {
+    field: "Dark charcoal longcoat with a subtle sigil on the chest, reinforced shoulders, simple utility belt, dark trousers and boots.",
+    ceremonial: "Deep-blue formal coat with polished metal insignia, refined silhouette, ceremonial trim, polished boots.",
+    covert: "Slate-grey fitted jacket with muted insignia, light armor panels, shorter tactical coat, dark boots and simple gloves."
+  };
+  const uniformDesc = uniformDescriptions[outfitStyle];
+
+  const roleDescriptions = {
+      protector: "The Warden's posture is calm and grounded, slightly between the aggressor and the vulnerable person, hands visible and non-threatening, expression focused and protective.",
+      mediator: "The Warden stands with open posture, facing both parties, hands slightly raised in a calming gesture, expression attentive and steady.",
+      supporter: "The Warden stays close to the vulnerable person, posture soft but present, attention focused on their well-being.",
+      bystander: "The Warden hangs back at the edge of the scene, observing, not physically intervening.",
+      aggressor: "The Warden's posture is tense and confrontational, leaning forward, body language assertive or threatening."
+  };
+  const roleDesc = roleDescriptions[visualRoleHint] || roleDescriptions.bystander;
+
+  // 5. Determine Aggressor/Vulnerable descriptions
+  const aggressorDesc = scene.aggressor_npc_key 
+    ? `The aggressor NPC (${scene.aggressor_npc_key}) has dominant, intrusive, or threatening posture, leaning toward the vulnerable person.` 
+    : "";
+  const vulnerableDesc = scene.vulnerable_npc_key 
+    ? `The vulnerable NPC (${scene.vulnerable_npc_key}) shows fear, exhaustion, flinching, or guardedness.` 
+    : "";
+
+  const referenceInstruction = character.portrait_url 
+    ? `Use this reference portrait of the Warden to keep their face and uniform consistent: ${character.portrait_url}. Do not significantly change their appearance — only adjust pose, lighting, and background.` 
+    : `Visuals: ${character.character_visual_prompt}. Keep the Warden’s facial features and uniform design consistent with the description.`;
+
+  // 6. Ask LLM for prompt
   const llmResponse = await base44.integrations.Core.InvokeLLM({
     prompt: `
       I need a video generation prompt for a cinematic clip.
       
-      Context:
+      CONTEXT:
       Character: ${character.name}
-      Visuals: ${character.character_visual_prompt || 'A generic Warden'}
-      Outfit: ${outfitUsed}
+      Uniform: ${uniformDesc}
+      Role/Posture: ${roleDesc}
       
       Scene: ${scene.title}
       Setting: ${scene.body_text}
+      Aggressor Presence: ${aggressorDesc}
+      Vulnerable Presence: ${vulnerableDesc}
       
-      Task:
+      INSTRUCTIONS:
       Create a video-friendly prompt that summarizes:
-      - Who is present visually
+      - Who is present visually (Warden + NPCs)
       - Where the camera is
       - What the key action is
       - Emotional tone
       
-      Incorporate a simplified version of the character's visuals (skin, hair, build, age, gender, uniform) and the scene environment.
+      ${referenceInstruction}
       
-      Use this style note: "Cinematic, grounded, realistic lighting, muted palette, steady camera, filmic quality."
+      CRITICAL ROLE INSTRUCTION:
+      Under no circumstances should the Warden be depicted as the aggressor unless the Role/Posture explicitly says so. If the Warden is a protector or mediator, show them de-escalating, not attacking.
+      
+      STYLE:
+      "Cinematic, grounded, realistic lighting, muted palette, steady camera, filmic quality. Warden Saga style."
       
       Output ONLY the prompt string.
     `
@@ -60,7 +106,7 @@ export const buildCinematicPrompt = async (characterId, sceneId) => {
 
   return {
     video_prompt: llmResponse,
-    outfit_used: outfitUsed
+    outfit_used: outfitStyle
   };
 };
 
