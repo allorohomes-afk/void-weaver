@@ -16,11 +16,12 @@ Deno.serve(async (req) => {
         }
 
         // 1. Fetch Context
-        const [characters, prevScenes, choices, effectScripts] = await Promise.all([
+        const [characters, prevScenes, choices, effectScripts, microQuests] = await Promise.all([
             base44.entities.Character.filter({ id: character_id }),
             base44.entities.Scene.filter({ id: previous_scene_id }),
             previous_choice_id ? base44.entities.Choice.filter({ id: previous_choice_id }) : [],
-            base44.entities.EffectScript.list() // Fetch all to find by name
+            base44.entities.EffectScript.list(),
+            base44.entities.MicroQuest.list()
         ]);
 
         if (characters.length === 0 || prevScenes.length === 0) {
@@ -33,63 +34,139 @@ Deno.serve(async (req) => {
 
         // 2. Determine Category
         let category = 'walkway';
-        
-        // Simple rule-based categorization (enhanced by available data)
         const sceneText = (prevScene.body_text || "").toLowerCase() + (prevScene.title || "").toLowerCase();
-        const choiceText = prevChoice ? (prevChoice.label || "").toLowerCase() + (prevChoice.description || "").toLowerCase() : "";
         
-        // Heuristics based on keywords/tags if available (or simple text analysis)
         if (prevChoice && prevChoice.risk_level === 'high') {
-            category = 'emotional_regulation'; // High risk often means adrenaline
-        } else if (sceneText.includes('investigat') || sceneText.includes('clue') || sceneText.includes('question')) {
+            category = 'emotional_regulation';
+        } else if (sceneText.includes('investigat') || sceneText.includes('clue')) {
              category = 'critical_thought';
         } else if (sceneText.includes('fight') || sceneText.includes('argu') || sceneText.includes('threat')) {
              category = 'peer_reaction';
         } else if (prevScene.vulnerable_npc_key) {
              category = 'micro_skill';
-        } else if (sceneText.includes('crowd') || sceneText.includes('market') || sceneText.includes('street')) {
+        } else if (sceneText.includes('crowd') || sceneText.includes('market')) {
              category = 'environmental';
         }
 
-        // Override if specific choice hint exists (optional, but good for precision)
         if (prevChoice && prevChoice.visual_role_hint === 'aggressor') category = 'emotional_regulation';
         if (prevChoice && prevChoice.visual_role_hint === 'mediator') category = 'micro_skill';
 
-        // 3. Generate Text via LLM
-        const prompt = `
-            Write a short cinematic 'between scene' moment in the category: ${category}.
-            The goal is to show the world reacting to the player, the player processing emotions, and subtle social dynamics men often overlook.
+        // 3. Generate Content via LLM (Text + NPC Updates + Visual Prompt)
+        const systemPrompt = `
+            You are generating a "Between Scene" moment for a narrative RPG.
+            Category: ${category}
             
             Context:
             Scene: ${prevScene.title}
-            Action Taken: ${prevChoice ? prevChoice.label : "Moving through"}
-            Character: ${character.name} (${character.face_vibe})
+            Action: ${prevChoice ? prevChoice.label : "Transition"}
+            Character: ${character.name} (${character.face_vibe}, ${character.outfit_style} uniform)
 
-            Include:
-            - peer reactions (mocking, praise, confusion, quiet respect)
-            - environmental cues (who watches, who looks away)
-            - opportunities for self-awareness
-            - one small emotional shift
-            
-            Do NOT moralize or explain — show through behavior.
-            Keep it under 6 sentences.
-            Output ONLY the scene text.
+            Outputs needed:
+            1. Cinematic Text (3-6 sentences): Show peer reactions, environmental cues, emotional shifts. No moralizing.
+            2. Visual Prompt: For AI image generation. Photorealistic, cinematic, moody lighting.
+            3. NPC Memory Updates: Identify if any named NPCs (from context) should remember this moment (respect, fear, safety, etc).
         `;
 
-        const generatedText = await base44.integrations.Core.InvokeLLM({
-            prompt: prompt
+        const llmRes = await base44.integrations.Core.InvokeLLM({
+            prompt: systemPrompt,
+            response_json_schema: {
+                type: "object",
+                properties: {
+                    scene_text: { type: "string" },
+                    visual_prompt: { type: "string" },
+                    npc_updates: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                npc_name_reference: { type: "string" },
+                                memory_type: { type: "string", enum: ["respect", "fear", "safety", "distrust", "admiration"] },
+                                intensity: { type: "integer", minimum: 1, maximum: 3 }
+                            },
+                            required: ["npc_name_reference", "memory_type", "intensity"]
+                        }
+                    }
+                },
+                required: ["scene_text", "visual_prompt", "npc_updates"]
+            }
         });
 
-        // 4. Create BetweenScene Record
+        const { scene_text, visual_prompt, npc_updates } = llmRes;
+
+        // 4. Generate Image
+        let imageUrl = null;
+        try {
+            const finalImagePrompt = `${visual_prompt}. Style: Warden Saga — Cinematic Grounded Art, Realistic rendering, Soft dramatic lighting, Muted color palette. Character reference: ${character.portrait_url ? "Use provided character portrait style" : character.character_visual_prompt}`;
+            const imageRes = await base44.integrations.Core.GenerateImage({ prompt: finalImagePrompt });
+            imageUrl = imageRes.url;
+        } catch (err) {
+            console.error("Image generation failed", err);
+        }
+
+        // 5. Check MicroQuest Triggers
+        let triggeredMQId = null;
+        const potentialMQs = [];
+        
+        // Define Logic
+        if ((character.presence || 0) > 2) potentialMQs.push('mq_talk_friend');
+        if ((character.care || 0) > 2) potentialMQs.push('mq_check_woman');
+        if ((character.insight || 0) > 2) potentialMQs.push('mq_follow_boy');
+        if ((character.care || 0) > 3) potentialMQs.push('mq_quiet_clinic');
+        if ((character.resolve || 0) > 2) potentialMQs.push('mq_whispering_warden');
+        // Jalen logic requires relationship lookup, skipping for speed or assuming 'safety' implicit in context
+        
+        // Find one valid MQ
+        for (const key of potentialMQs) {
+            const mq = microQuests.find(m => m.key === key);
+            if (mq) {
+                // Check if already active/completed
+                const existing = await base44.entities.CharacterMicroQuest.filter({
+                    character_id: character.id,
+                    microquest_id: mq.id
+                });
+                if (existing.length === 0) {
+                    triggeredMQId = mq.id;
+                    // Auto-assign
+                    await base44.entities.CharacterMicroQuest.create({
+                        character_id: character.id,
+                        microquest_id: mq.id,
+                        status: 'active'
+                    });
+                    break; // Only one at a time
+                }
+            }
+        }
+
+        // 6. Create BetweenScene Record
         const betweenScene = await base44.entities.BetweenScene.create({
             trigger_scene_id: previous_scene_id,
             trigger_choice_id: previous_choice_id || null,
             character_id: character_id,
-            text: generatedText,
-            category: category
+            text: scene_text,
+            category: category,
+            next_microquest_scene_id: triggeredMQId,
+            image_url: imageUrl
         });
 
-        // 5. Generate Micro-Choices (Deterministic Mapping)
+        // 7. Handle NPC Memory Updates
+        if (npc_updates && npc_updates.length > 0) {
+            const allNpcs = await base44.entities.NPC.list();
+            for (const update of npc_updates) {
+                const targetNpc = allNpcs.find(n => n.name.toLowerCase().includes(update.npc_name_reference.toLowerCase()) || n.key === update.npc_name_reference.toLowerCase());
+                if (targetNpc) {
+                    await base44.entities.NPCMemory.create({
+                        npc_id: targetNpc.id,
+                        character_id: character.id,
+                        memory_type: update.memory_type,
+                        intensity: update.intensity,
+                        notes: `Generated from BSL: ${category}`,
+                        reaction_node_id: null // Linked to BSL context
+                    });
+                }
+            }
+        }
+
+        // 8. Generate Micro-Choices
         const microChoices = [];
         const skillMap = {
             'emotional_regulation': [
@@ -135,7 +212,8 @@ Deno.serve(async (req) => {
 
         return Response.json({
             betweenScene,
-            microChoices
+            microChoices,
+            unlockedMicroQuestId: triggeredMQId
         });
 
     } catch (error) {

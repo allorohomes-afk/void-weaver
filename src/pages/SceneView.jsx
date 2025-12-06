@@ -566,6 +566,17 @@ export default function SceneView() {
                         <div className="text-lg text-slate-200 leading-relaxed font-serif italic pl-4 border-l-2 border-indigo-500">
                             {betweenSceneData.betweenScene.text}
                         </div>
+                        {betweenSceneData.betweenScene.image_url && (
+                             <div className="mt-6 rounded-lg overflow-hidden shadow-xl border border-slate-700/50">
+                                <img src={betweenSceneData.betweenScene.image_url} alt="Atmospheric Scene" className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity duration-700" />
+                             </div>
+                        )}
+                        {betweenSceneData.unlockedMicroQuestId && (
+                            <div className="mt-4 p-3 bg-indigo-900/30 border border-indigo-500/30 rounded flex items-center gap-3 animate-pulse">
+                                <Brain className="w-5 h-5 text-indigo-400" />
+                                <span className="text-indigo-200 text-sm font-semibold">New Opportunity Discovered (MicroQuest)</span>
+                            </div>
+                        )}
                     </div>
                     
                     <div className="space-y-4">
