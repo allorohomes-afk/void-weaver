@@ -4,8 +4,36 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Shield, Users, Zap, ChevronRight, X } from 'lucide-react';
 
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Clock, History, BarChart2 } from 'lucide-react';
+
 export default function DebugHUD({ character, factions, factionStatuses, lastEffect, isOpen, onToggle }) {
   if (!character) return null;
+
+  const { data: choiceHistory } = useQuery({
+      queryKey: ['choiceHistory', character.id],
+      queryFn: async () => base44.entities.ChoiceHistory.filter({ character_id: character.id }, '-timestamp', 3),
+      enabled: isOpen
+  });
+
+  const { data: politicalState } = useQuery({
+      queryKey: ['politicalState', character.id],
+      queryFn: async () => {
+          const res = await base44.entities.PoliticalState.filter({ character_id: character.id });
+          return res[0] || null;
+      },
+      enabled: isOpen
+  });
+
+  const { data: activeEffects } = useQuery({
+      queryKey: ['longTermEffects', character.id],
+      queryFn: async () => {
+          const res = await base44.entities.LongTermEffect.filter({ character_id: character.id });
+          return res.filter(e => e.remaining_scenes > 0);
+      },
+      enabled: isOpen
+  });
 
   // --- Section A: Energies ---
   const { masculine_energy = 50, feminine_energy = 50 } = character;
@@ -183,6 +211,56 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
                         </div>
                     ) : (
                         <span className="italic text-slate-600">No effect triggered yet...</span>
+                    )}
+                </div>
+              </section>
+
+              {/* Section E: Political State */}
+              <section>
+                <h3 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest flex items-center">
+                    <BarChart2 className="w-3 h-3 mr-1.5" /> Political State
+                </h3>
+                {politicalState ? (
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
+                           <span className="text-slate-400 block mb-1">Old Guard</span>
+                           <span className="text-white font-mono">{politicalState.old_guard_pressure}</span>
+                        </div>
+                        <div className="bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
+                           <span className="text-slate-400 block mb-1">Lantern</span>
+                           <span className="text-white font-mono">{politicalState.lantern_influence}</span>
+                        </div>
+                        <div className="bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
+                           <span className="text-slate-400 block mb-1">Brotherhood</span>
+                           <span className="text-white font-mono">{politicalState.brotherhood_shadow}</span>
+                        </div>
+                        <div className="bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
+                           <span className="text-slate-400 block mb-1">Public</span>
+                           <span className="text-white font-mono">{politicalState.public_sentiment}</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-xs text-slate-600 italic">No political data yet</div>
+                )}
+              </section>
+
+              {/* Section F: Active Effects */}
+              <section>
+                <h3 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest flex items-center">
+                    <Clock className="w-3 h-3 mr-1.5" /> Active Effects
+                </h3>
+                <div className="space-y-2">
+                    {activeEffects && activeEffects.length > 0 ? (
+                        activeEffects.map(eff => (
+                            <div key={eff.id} className="bg-slate-900/30 p-2 rounded border border-amber-900/30 flex justify-between items-center">
+                                <span className="text-xs text-amber-200/80">{eff.description}</span>
+                                <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-800/50">
+                                    {eff.remaining_scenes} left
+                                </Badge>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-xs text-slate-600 italic">No temporary effects active</div>
                     )}
                 </div>
               </section>
