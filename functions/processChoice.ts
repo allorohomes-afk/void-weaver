@@ -179,13 +179,33 @@ Deno.serve(async (req) => {
             applied: true
         });
 
-        // 6. Check Skill Unlocks
+        // 6. Select Reaction
+        // Filter reactions: prioritize skill-based ones
+        const reactions = await base44.entities.ReactionNode.filter({ choice_id: choice.id });
+        let selectedReaction = null;
+
+        if (reactions.length > 0) {
+            // Check unlocked skills to find best reaction
+            const unlockedSkills = await base44.entities.CharacterSkill.filter({ character_id: character.id });
+            const activeSkillIds = new Set(unlockedSkills.filter(s => s.active).map(s => s.skill_id));
+
+            // Find reaction with required_skill_id that is active
+            selectedReaction = reactions.find(r => r.required_skill_id && activeSkillIds.has(r.required_skill_id));
+
+            // Fallback to default reaction (no skill req)
+            if (!selectedReaction) {
+                selectedReaction = reactions.find(r => !r.required_skill_id);
+            }
+            
+            // Fallback to any if specific structure not found
+            if (!selectedReaction) {
+                selectedReaction = reactions[0];
+            }
+        }
+
+        // 7. Check Skill Unlocks (AFTER processing choice and potential reaction context)
         let newSkills = [];
         try {
-            // We call the unlock logic directly here or via invoke if passing full context
-            // Since we are in backend, we can just call the logic if we extracted it, 
-            // but for simplicity we'll invoke the function we just created or replicate logic.
-            // Invoking self-hosted function from within function via SDK:
             const unlockRes = await base44.functions.invoke('unlockSkillIfEligible', { character_id: character.id });
             if (unlockRes.data && unlockRes.data.new_skills) {
                 newSkills = unlockRes.data.new_skills;
