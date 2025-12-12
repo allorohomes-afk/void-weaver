@@ -23,7 +23,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     gender_presentation: initialData?.gender_presentation || '',
     age_range: initialData?.age_range || '',
     face_vibe: initialData?.face_vibe || '',
-    outfit_style: initialData?.outfit_style || 'field',
+    outfit_style: initialData?.outfit_style || 'street_ops',
     reference_photo_url: initialData?.reference_photo_url || ''
   });
 
@@ -35,9 +35,9 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
   const bodyTypes = ["Lean", "Average", "Broad", "Soft", "Stocky", "Tall", "Short", "Curvy", "Athletic"];
   
   const uniformDescriptions = {
-    field: "Dark charcoal longcoat with a subtle sigil on the chest, reinforced shoulders, simple utility belt, dark trousers and boots.",
-    ceremonial: "Deep-blue formal coat with polished metal insignia, refined silhouette, ceremonial trim, polished boots.",
-    covert: "Slate-grey fitted jacket with muted insignia, light armor panels, shorter tactical coat, dark boots and simple gloves."
+    street_ops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
+    star_fleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
+    infiltration_suit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
   };
 
   const handleBodyTypeToggle = (type) => {
@@ -307,7 +307,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
         <div className="space-y-4 pt-4 border-t border-slate-700">
           <h3 className="text-lg font-medium text-white">Warden Uniform</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {['field', 'ceremonial', 'covert'].map((style) => (
+            {['street_ops', 'star_fleet', 'infiltration_suit'].map((style) => (
               <div 
                 key={style}
                 onClick={() => setFormData({...formData, outfit_style: style})}
