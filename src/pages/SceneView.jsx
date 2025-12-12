@@ -621,7 +621,7 @@ export default function SceneView() {
             )}
 
             {/* Choices */}
-            {!reactionNode && (
+            {!reactionNode && !betweenSceneData && (
                currentScene.is_terminal ? (
               <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700 text-center">
                 <h2 className="text-2xl font-bold text-white mb-4">The End</h2>
