@@ -1,4 +1,5 @@
 import React from 'react';
+import Header from '@/components/layout/Header';
 
 export default function Layout({ children }) {
   return (
@@ -52,6 +53,7 @@ export default function Layout({ children }) {
 
       {/* Content Wrapper */}
       <div className="relative z-10">
+        <Header />
         {children}
       </div>
 
