@@ -370,8 +370,8 @@ export default function SceneView() {
       style={{
         backgroundImage: currentScene.background_image_url 
           ? `linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url(${currentScene.background_image_url})`
-          : 'linear-gradient(to bottom right, rgb(15, 23, 42), rgb(88, 28, 135), rgb(15, 23, 42))'
-      }}
+          : 'linear-gradient(to bottom right, #020617, #0f172a, #1e1b4b)' // Navy to Slate to Deep Blue
+          }}
     >
       <div className="container mx-auto px-4 py-6">
         <Button 
