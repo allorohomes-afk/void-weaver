@@ -118,7 +118,7 @@ export default function PortraitCreatorPage() {
           <CardContent className="p-6 space-y-6">
             <div className="text-center space-y-2">
                 <h2 className="text-xl text-white font-semibold">1. Upload Reference Photo</h2>
-                <p className="text-slate-400 text-sm">Upload a selfie or photo to use as a base for your Warden.</p>
+                <p className="text-slate-400 text-sm">Upload a selfie or photo to use as a base for your Void Weaver.</p>
             </div>
 
             <div className="flex justify-center">
@@ -155,8 +155,8 @@ export default function PortraitCreatorPage() {
             {uploading && <div className="text-center text-indigo-400">Uploading...</div>}
 
             <div className="border-t border-slate-800 pt-6 text-center space-y-4">
-                <h2 className="text-xl text-white font-semibold">2. Generate Warden Portrait</h2>
-                <p className="text-slate-400 text-sm">Generate a cinematic portrait combining your photo with your character traits.</p>
+                <h2 className="text-xl text-white font-semibold">2. Generate Void Weaver Portrait</h2>
+                <p className="text-slate-400 text-sm">Generate a cinematic portrait combining your photo with your Void Weaver traits.</p>
                 
                 <Button 
                     onClick={handleGenerate} 
