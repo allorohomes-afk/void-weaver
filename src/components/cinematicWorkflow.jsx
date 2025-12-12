@@ -157,34 +157,45 @@ export const generateCharacterPortraitFromPhoto = async (characterId) => {
   const characters = await base44.entities.Character.filter({ id: characterId });
   const character = characters[0];
 
+  let prompt = "";
   if (!character.reference_photo_url) {
-     const prompt = `${character.character_visual_prompt}. ${getLeonardoStyle()}`;
-     const res = await base44.integrations.Core.GenerateImage({ prompt });
-     
-     await base44.entities.Character.update(characterId, { portrait_url: res.url });
-     return { ...character, portrait_url: res.url };
+     prompt = `${character.character_visual_prompt}. ${getLeonardoStyle()}`;
+  } else {
+      const uniformDescriptions = {
+        streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
+        starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
+        infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
+      };
+      const uniformDesc = uniformDescriptions[character.outfit_style] || uniformDescriptions.streetops;
+
+      prompt = `
+        Use the reference photo as the base.
+        Keep core facial features, skin tone, and general proportions.
+        Transform into a Void Weaver.
+        Outfit: ${uniformDesc}
+        Visuals: ${character.character_visual_prompt}.
+        Style: ${getLeonardoStyle()}
+      `;
   }
 
-  const uniformDescriptions = {
-    streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
-    starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-    infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
-  };
-  const uniformDesc = uniformDescriptions[character.outfit_style] || uniformDescriptions.streetops;
-
-  const i2iPrompt = `
-    Use the reference photo as the base.
-    Keep core facial features, skin tone, and general proportions.
-    Transform into a Void Weaver.
-    Outfit: ${uniformDesc}
-    Visuals: ${character.character_visual_prompt}.
-    Style: ${getLeonardoStyle()}
-  `;
-  
-  const res = await base44.integrations.Core.GenerateImage({ 
-    prompt: i2iPrompt 
+  // Use Leonardo backend function
+  const res = await base44.functions.invoke('generateLeonardoImage', { 
+    prompt: prompt,
+    width: 768,
+    height: 1024, // Portrait
+    init_image_url: character.reference_photo_url
   });
 
+  if (res.data.error) throw new Error(res.data.error);
+
+  const newUrl = res.data.url;
+
+  if (!character.reference_photo_url) {
+     // Auto-save if no reference (first time gen)
+     await base44.entities.Character.update(characterId, { portrait_url: newUrl });
+     return { ...character, portrait_url: newUrl };
+  }
+
   // DO NOT auto-save. Return the URL for preview.
-  return { ...character, portrait_url: res.url, isPreview: true };
+  return { ...character, portrait_url: newUrl, isPreview: true };
 };

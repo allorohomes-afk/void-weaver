@@ -76,11 +76,20 @@ Deno.serve(async (req) => {
              prompt += `\nVisual Description: ${character.character_visual_prompt}`;
         }
 
-        // 3. Call GenerateImage
-        const imageRes = await base44.integrations.Core.GenerateImage({ prompt });
+        // 3. Call GenerateImage via Leonardo
+        // We use the new backend function for Leonardo
+        const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
+            prompt,
+            width: 1280, // Cinematic aspect
+            height: 720
+        });
+
+        if (leoRes.data.error) {
+            throw new Error(leoRes.data.error);
+        }
 
         return Response.json({ 
-            image_url: imageRes.url,
+            image_url: leoRes.data.url,
             portrait_version: character.portrait_reference_version || 1
         });
 

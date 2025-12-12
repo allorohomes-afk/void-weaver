@@ -101,12 +101,17 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       
       setGenerationPrompt(prompt);
       
-      result = await base44.integrations.Core.GenerateImage({
-        prompt: prompt
+      result = await base44.functions.invoke('generateLeonardoImage', {
+        prompt: prompt,
+        width: 768,
+        height: 1024,
+        init_image_url: formData.reference_photo_url
       });
       
-      setGeneratedPortrait(result.url);
-      return { url: result.url, prompt };
+      if (result.data.error) throw new Error(result.data.error);
+
+      setGeneratedPortrait(result.data.url);
+      return { url: result.data.url, prompt };
     } catch (error) {
       console.error("Generation failed:", error);
       toast.error("Failed to generate portrait");
