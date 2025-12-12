@@ -6,6 +6,7 @@ import RelationshipsSummary from '../components/scene/RelationshipsSummary';
 import WorldContextPanel from '../components/scene/WorldContextPanel';
 import QuestLog from '../components/scene/QuestLog';
 import ChoiceButton from '../components/scene/ChoiceButton';
+import ConversationInterface from '../components/scene/ConversationInterface';
 import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle, Search, Eye, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ export default function SceneView() {
   const [analyzingClueId, setAnalyzingClueId] = useState(null);
   const [betweenSceneData, setBetweenSceneData] = useState(null);
   const [isGeneratingBSL, setIsGeneratingBSL] = useState(false);
+  const [activeConversationNPC, setActiveConversationNPC] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -664,8 +666,21 @@ export default function SceneView() {
             <WorldContextPanel characterId={character.id} sceneId={currentScene.id} />
             <QuestLog characterId={character.id} />
             <StatsPanel character={character} />
-            <RelationshipsSummary relationships={relationships} npcs={npcs} />
-            </div>
+            <RelationshipsSummary 
+                relationships={relationships} 
+                npcs={npcs} 
+                onInteract={(npc) => setActiveConversationNPC(npc)}
+            />
+          </div>
+
+          {/* Dynamic Conversation Modal */}
+          {activeConversationNPC && (
+             <ConversationInterface 
+                characterId={character.id} 
+                npc={activeConversationNPC} 
+                onClose={() => setActiveConversationNPC(null)} 
+             />
+          )}
             </div>
 
             {/* Debug HUD */}
