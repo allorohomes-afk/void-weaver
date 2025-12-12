@@ -23,7 +23,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     gender_presentation: initialData?.gender_presentation || '',
     age_range: initialData?.age_range || '',
     face_vibe: initialData?.face_vibe || '',
-    outfit_style: initialData?.outfit_style || 'street_ops',
+    outfit_style: initialData?.outfit_style || 'streetops',
     reference_photo_url: initialData?.reference_photo_url || ''
   });
 
@@ -35,9 +35,9 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
   const bodyTypes = ["Lean", "Average", "Broad", "Soft", "Stocky", "Tall", "Short", "Curvy", "Athletic"];
   
   const uniformDescriptions = {
-    street_ops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
-    star_fleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-    infiltration_suit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
+    streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
+    starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
+    infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
   };
 
   const handleBodyTypeToggle = (type) => {
@@ -59,7 +59,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     
     const uniformDesc = uniformDescriptions[data.outfit_style];
 
-    return `A cinematic portrait of a Warden with ${data.skin_tone} skin, ${data.eye_color ? `${data.eye_color} eyes, ` : ''}${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
+    return `A cinematic portrait of a Void Weaver with ${data.skin_tone} skin, ${data.eye_color ? `${data.eye_color} eyes, ` : ''}${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
   };
 
   const handleFileUpload = async (e) => {
@@ -89,7 +89,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
          prompt = `
             Use the reference photo as the base.
             Keep core facial features, skin tone, and general proportions.
-            Transform into a Warden from "Warden Saga".
+            Transform into a Void Weaver.
             Outfit: ${uniformDesc}
             Visuals: ${buildCharacterVisualPrompt(formData)}.
             Style: ${getLeonardoStyle()}
@@ -305,9 +305,9 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
         </div>
 
         <div className="space-y-4 pt-4 border-t border-slate-700">
-          <h3 className="text-lg font-medium text-white">Warden Uniform</h3>
+          <h3 className="text-lg font-medium text-white">Void Weaver Uniform</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {['street_ops', 'star_fleet', 'infiltration_suit'].map((style) => (
+            {['streetops', 'starfleet', 'infiltrationsuit'].map((style) => (
               <div 
                 key={style}
                 onClick={() => setFormData({...formData, outfit_style: style})}

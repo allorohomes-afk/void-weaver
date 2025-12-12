@@ -32,20 +32,20 @@ export const buildCinematicPrompt = async (characterId, sceneId) => {
   }
 
   // 4. Decide outfit & role description
-  const outfitStyle = character.outfit_style || 'street_ops';
+  const outfitStyle = character.outfit_style || 'streetops';
   const uniformDescriptions = {
-    street_ops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
-    star_fleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-    infiltration_suit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
+    streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
+    starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
+    infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
   };
-  const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.street_ops;
+  const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.streetops;
 
   const roleDescriptions = {
-      protector: "The Warden's posture is calm and grounded, slightly between the aggressor and the vulnerable person, hands visible and non-threatening, expression focused and protective.",
-      mediator: "The Warden stands with open posture, facing both parties, hands slightly raised in a calming gesture, expression attentive and steady.",
-      supporter: "The Warden stays close to the vulnerable person, posture soft but present, attention focused on their well-being.",
-      bystander: "The Warden hangs back at the edge of the scene, observing, not physically intervening.",
-      aggressor: "The Warden's posture is tense and confrontational, leaning forward, body language assertive or threatening."
+      protector: "The Void Weaver's posture is calm and grounded, slightly between the aggressor and the vulnerable person, hands visible and non-threatening, expression focused and protective.",
+      mediator: "The Void Weaver stands with open posture, facing both parties, hands slightly raised in a calming gesture, expression attentive and steady.",
+      supporter: "The Void Weaver stays close to the vulnerable person, posture soft but present, attention focused on their well-being.",
+      bystander: "The Void Weaver hangs back at the edge of the scene, observing, not physically intervening.",
+      aggressor: "The Void Weaver's posture is tense and confrontational, leaning forward, body language assertive or threatening."
   };
   const roleDesc = roleDescriptions[visualRoleHint] || roleDescriptions.bystander;
 
@@ -58,8 +58,8 @@ export const buildCinematicPrompt = async (characterId, sceneId) => {
     : "";
 
   const referenceInstruction = character.portrait_url 
-    ? `Use this reference portrait of the Warden to keep their face and uniform consistent: ${character.portrait_url}. Do not significantly change their appearance — only adjust pose, lighting, and background.` 
-    : `Visuals: ${character.character_visual_prompt}. Keep the Warden’s facial features and uniform design consistent with the description.`;
+    ? `Use this reference portrait of the Void Weaver to keep their face and uniform consistent: ${character.portrait_url}. Do not significantly change their appearance — only adjust pose, lighting, and background.` 
+    : `Visuals: ${character.character_visual_prompt}. Keep the Void Weaver’s facial features and uniform design consistent with the description.`;
 
   // 6. Ask LLM for prompt
   const llmResponse = await base44.integrations.Core.InvokeLLM({
@@ -166,16 +166,16 @@ export const generateCharacterPortraitFromPhoto = async (characterId) => {
   }
 
   const uniformDescriptions = {
-    street_ops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
-    star_fleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-    infiltration_suit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
+    streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
+    starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
+    infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
   };
-  const uniformDesc = uniformDescriptions[character.outfit_style] || uniformDescriptions.street_ops;
+  const uniformDesc = uniformDescriptions[character.outfit_style] || uniformDescriptions.streetops;
 
   const i2iPrompt = `
     Use the reference photo as the base.
     Keep core facial features, skin tone, and general proportions.
-    Transform into a Warden from "Warden Saga".
+    Transform into a Void Weaver.
     Outfit: ${uniformDesc}
     Visuals: ${character.character_visual_prompt}.
     Style: ${getLeonardoStyle()}

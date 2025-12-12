@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
         // 2. Build Prompt
         const portraitUrl = character.portrait_url;
-        const outfitStyle = character.outfit_style || 'street_ops';
+        const outfitStyle = character.outfit_style || 'streetops';
         const roleHint = visual_role_hint || 'neutral';
         const toneText = tone || 'cinematic';
         const contextText = scene_context || 'a scene in the city';
@@ -44,15 +44,15 @@ Deno.serve(async (req) => {
         }
 
         const uniformDescriptions = {
-          street_ops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
-          star_fleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-          infiltration_suit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
+          streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
+          starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
+          infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
         };
-        const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.street_ops;
+        const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.streetops;
 
         // Construct the prompt enforcing consistency
         let prompt = `
-        Subject: The Warden (central character).
+        Subject: The Void Weaver (central character).
         Reference Character: Use the provided reference image URL for face, skin tone, age, and head shape.
         Outfit: ${uniformDesc}
         
@@ -62,8 +62,8 @@ Deno.serve(async (req) => {
         Skill Vibes/Modifiers: ${skillModifiers}
 
         CRITICAL INSTRUCTIONS:
-        - The Warden MUST be the clear central figure.
-        - The Warden MUST match the reference image face and the described uniform.
+        - The Void Weaver MUST be the clear central figure.
+        - The Void Weaver MUST match the reference image face and the described uniform.
         - If other uniformed characters appear, they must have clearly different faces/hair.
         - Style: Vintage 1980s-90s anime space opera, cel-animated, hand-painted watercolor backgrounds.
         - Colors: Dark navy/slate backgrounds, neon cyan/magenta highlights.
