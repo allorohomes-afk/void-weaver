@@ -179,31 +179,85 @@ Deno.serve(async (req) => {
             applied: true
         });
 
-        // 6. Select Reaction
-        // Filter reactions: prioritize skill-based ones
+        // 6. Select Reaction with Dynamic Twist Logic
         const reactions = await base44.entities.ReactionNode.filter({ choice_id: choice.id });
         let selectedReaction = null;
+        let generatedReactionText = null;
+        let generatedReactionTone = null;
+
+        // Fetch relationships for deep check
+        const relationships = await base44.entities.Relationship.filter({ character_id: character.id });
 
         if (reactions.length > 0) {
-            // Check unlocked skills to find best reaction
             const unlockedSkills = await base44.entities.CharacterSkill.filter({ character_id: character.id });
             const activeSkillIds = new Set(unlockedSkills.filter(s => s.active).map(s => s.skill_id));
 
-            // Find reaction with required_skill_id that is active
+            // 1. Skill Match
             selectedReaction = reactions.find(r => r.required_skill_id && activeSkillIds.has(r.required_skill_id));
+            if (!selectedReaction) selectedReaction = reactions.find(r => !r.required_skill_id);
+            if (!selectedReaction) selectedReaction = reactions[0];
+        }
 
-            // Fallback to default reaction (no skill req)
-            if (!selectedReaction) {
-                selectedReaction = reactions.find(r => !r.required_skill_id);
-            }
-            
-            // Fallback to any if specific structure not found
-            if (!selectedReaction) {
-                selectedReaction = reactions[0];
+        // --- Dynamic Twist Check ---
+        // We trigger an AI twist if specific emotional/stat conditions are met
+        // e.g., High tension, significant stat shift, or strong relationship context
+        const isHighDrama = (character.fear_freeze > 3) || (Math.abs(character.masculine_energy - character.feminine_energy) > 30);
+        
+        // Also check if we have relevant NPC relationships in the scene
+        // (This assumes we can pass 'npcs_in_scene' or infer it. For now, we infer from choice/scene keys if available, or just skip relationship trigger if generic)
+        
+        if (isHighDrama || !selectedReaction) {
+            // Determine context for LLM
+            const twistPrompt = `
+                The player made a choice: "${choice.label}".
+                Standard Reaction available: "${selectedReaction ? selectedReaction.text : 'None'}".
+                
+                Character State:
+                - Insight: ${character.insight}
+                - Care: ${character.care}
+                - Fear Freeze: ${character.fear_freeze}
+                - Energy Balance: ${character.masculine_energy}/${character.feminine_energy} (M/F)
+                
+                Relationships: ${relationships.map(r => `NPC_${r.npc_id.substr(0,4)}: Trust ${r.trust}, Safety ${r.safety}`).join(', ')}
+
+                Task:
+                Determine if a "Plot Twist" or nuanced alteration is needed based on the high emotional stats or lack of standard reaction.
+                If the standard reaction is sufficient, output "KEEP".
+                If a twist is better (e.g., character freezes up due to Fear, or notices something due to Insight), generate the new reaction text.
+
+                Output JSON:
+                {
+                    "action": "KEEP" or "TWIST",
+                    "text": "New reaction text if TWIST",
+                    "tone": "tense" | "soft" | "ominous" | "hopeful"
+                }
+            `;
+
+            try {
+                const llmRes = await base44.integrations.Core.InvokeLLM({
+                    prompt: twistPrompt,
+                    response_json_schema: {
+                        type: "object",
+                        properties: {
+                            action: { type: "string", enum: ["KEEP", "TWIST"] },
+                            text: { type: "string" },
+                            tone: { type: "string" }
+                        },
+                        required: ["action"]
+                    }
+                });
+
+                if (llmRes.action === 'TWIST' && llmRes.text) {
+                    generatedReactionText = llmRes.text;
+                    generatedReactionTone = llmRes.tone;
+                    // We don't save this as a node to keep DB clean, we just return it for display
+                }
+            } catch (e) {
+                console.error("Twist generation failed", e);
             }
         }
 
-        // 7. Check Skill Unlocks (AFTER processing choice and potential reaction context)
+        // 7. Check Skill Unlocks
         let newSkills = [];
         try {
             const unlockRes = await base44.functions.invoke('unlockSkillIfEligible', { character_id: character.id });
@@ -217,7 +271,12 @@ Deno.serve(async (req) => {
         return Response.json({ 
             status: 'success', 
             new_skills: newSkills, 
-            selected_reaction_id: selectedReaction ? selectedReaction.id : null 
+            selected_reaction_id: selectedReaction ? selectedReaction.id : null,
+            generated_reaction: generatedReactionText ? {
+                text: generatedReactionText,
+                tone: generatedReactionTone || 'neutral',
+                id: 'generated_twist'
+            } : null
         });
 
     } catch (error) {
