@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import StatsPanel from '../components/scene/StatsPanel';
 import RelationshipsSummary from '../components/scene/RelationshipsSummary';
+import WorldContextPanel from '../components/scene/WorldContextPanel';
 import ChoiceButton from '../components/scene/ChoiceButton';
 import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle, Search, Eye, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -208,7 +209,10 @@ export default function SceneView() {
       // Handle Reaction and Transition
       let reactionToDisplay = null;
       
-      if (processRes.data?.selected_reaction_id) {
+      if (processRes.data?.generated_reaction) {
+          // Use dynamically generated reaction
+          reactionToDisplay = processRes.data.generated_reaction;
+      } else if (processRes.data?.selected_reaction_id) {
           const specificReaction = await base44.entities.ReactionNode.filter({ id: processRes.data.selected_reaction_id });
           if (specificReaction.length > 0) reactionToDisplay = specificReaction[0];
       } else {
@@ -631,6 +635,7 @@ export default function SceneView() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            <WorldContextPanel characterId={character.id} sceneId={currentScene.id} />
             <StatsPanel character={character} />
             <RelationshipsSummary relationships={relationships} npcs={npcs} />
             </div>
