@@ -4,9 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import StatsPanel from '../components/scene/StatsPanel';
 import RelationshipsSummary from '../components/scene/RelationshipsSummary';
 import WorldContextPanel from '../components/scene/WorldContextPanel';
+import QuestLog from '../components/scene/QuestLog';
 import ChoiceButton from '../components/scene/ChoiceButton';
 import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle, Search, Eye, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from "sonner";
 import { prepareSceneCinematic } from '@/components/cinematicWorkflow';
 import DebugHUD from '@/components/scene/DebugHUD';
 
@@ -178,9 +180,19 @@ export default function SceneView() {
            return true; 
        }).length;
        
-       // ... Implementing robust trigger logic here is complex without joining.
-       // I'll skip the auto-trigger for now or implement it simplified if requested.
-       // The prompt says "Unlock microquest". I'll do it if I can.
+       // Check Quest Completion
+       try {
+           const questRes = await base44.functions.invoke('checkQuestCompletion', { character_id: character.id });
+           if (questRes.data.completed && questRes.data.completed.length > 0) {
+               questRes.data.completed.forEach(mq => {
+                   toast.success(`Quest Completed: ${mq.title}`, {
+                       description: "Rewards applied."
+                   });
+               });
+           }
+       } catch (err) {
+           console.error("Quest check failed", err);
+       }
 
        queryClient.invalidateQueries();
     } catch (error) {
@@ -278,6 +290,20 @@ export default function SceneView() {
         await base44.entities.Character.update(character.id, {
           current_scene_id: nextSceneId
         });
+      }
+
+      // Check Quest Completion (after choice effects)
+      try {
+           const questRes = await base44.functions.invoke('checkQuestCompletion', { character_id: character.id });
+           if (questRes.data.completed && questRes.data.completed.length > 0) {
+               questRes.data.completed.forEach(mq => {
+                   toast.success(`Quest Completed: ${mq.title}`, {
+                       description: "Rewards applied."
+                   });
+               });
+           }
+      } catch (err) {
+           console.error("Quest check failed", err);
       }
 
       queryClient.invalidateQueries();
@@ -636,6 +662,7 @@ export default function SceneView() {
           {/* Sidebar */}
           <div className="space-y-6">
             <WorldContextPanel characterId={character.id} sceneId={currentScene.id} />
+            <QuestLog characterId={character.id} />
             <StatsPanel character={character} />
             <RelationshipsSummary relationships={relationships} npcs={npcs} />
             </div>
