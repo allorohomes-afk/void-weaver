@@ -1,21 +1,12 @@
 import { base44 } from '@/api/base44Client';
 
 export const getLeonardoStyle = () => {
-  return `Leonardo Art Style Preset: “Warden Saga — Cinematic Grounded Art”
-• Realistic rendering
-• Soft dramatic lighting
-• Muted, unified color palette (cool greys, deep blues, warm browns)
-• Painterly texture with subtle brushwork
-• Cinematic composition
-• Medium contrast
-• Slight bloom on highlights
-• Sharp eyes, expressive faces
-• Soft background depth of field
-• No anime, no cartoon, no over-stylized proportions
-• Clothing and uniforms remain consistent with provided descriptions
-• Characters appear grounded, human, emotionally readable
-• Minimal fantasy exaggeration
-• Moody atmosphere consistent with a “moral RPG”`;
+  return `Style: Vintage 1980s-90s anime space opera, cel-animated with hand-painted watercolor backgrounds. 
+Color Palette: Dark, deep navy and slate backgrounds (#020617, #0f172a), accented with vibrant neon cyan (#0ea5e9), electric blue, amber, and occasional magenta/red highlights. 
+Mood: Optimistic, clean, and sleek, evoking classic sci-fi with a nostalgic, analog feel. 
+Technique: High contrast, crisp lines, subtle film grain, flat cel shading for artistic elements, and glowing borders/digital display aesthetics for UI components. 
+Elements: Incorporates HUD overlays, scanlines, grid patterns, subtle glow effects, sharp edges, and geometric panel designs. 
+Avoids modern CGI or 3D rendering; maintains a hand-drawn, 2D illustrative quality.`;
 };
 
 export const buildCinematicPrompt = async (characterId, sceneId) => {
