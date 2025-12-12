@@ -32,6 +32,15 @@ export default function CharacterSelect() {
 
   const createCharacterMutation = useMutation({
     mutationFn: async (characterData) => {
+      // Fetch default start scene
+      let startSceneId = null;
+      try {
+        const scenes = await base44.entities.Scene.filter({ key: 'first_watch_start' });
+        if (scenes.length > 0) startSceneId = scenes[0].id;
+      } catch (e) {
+        console.error("Failed to fetch start scene", e);
+      }
+
       return await base44.entities.Character.create({
         ...characterData,
         user_id: currentUser.id,
@@ -44,7 +53,7 @@ export default function CharacterSelect() {
         feminine_energy: 50,
         fear_freeze: 0,
         retaliation_risk: 0,
-        current_scene_id: null
+        current_scene_id: startSceneId
       });
     },
     onSuccess: () => {

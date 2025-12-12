@@ -351,11 +351,24 @@ export default function SceneView() {
   }
 
   if (!currentScene) {
+    // If character exists but no scene, we are likely initializing
+    if (character && !character.current_scene_id) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mx-auto" />
+                    <p className="text-slate-300">Initializing Mission...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <p className="text-white text-xl mb-4">No scene available</p>
-          <Button onClick={handleBackToCharacters} variant="outline" className="border-slate-700 text-white">
+          <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto">The requested scene could not be loaded. It may have been deleted or the character data is corrupted.</p>
+          <Button onClick={handleBackToCharacters} variant="outline" className="border-slate-700 text-white hover:bg-slate-800">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Characters
           </Button>
