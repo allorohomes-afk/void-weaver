@@ -126,8 +126,9 @@ export default function CharacterSelect() {
         {!showForm && (
           <Button
             onClick={() => setShowForm(true)}
-            className="mb-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            className="mb-6 bg-slate-900 border border-cyan-500 text-cyan-400 hover:bg-cyan-950 hover:text-cyan-100 hover:shadow-[0_0_20px_rgba(14,165,233,0.5)] hover:border-cyan-300 transition-all duration-300 uppercase tracking-widest font-bold shadow-[0_0_10px_rgba(14,165,233,0.1)] relative overflow-hidden group"
           >
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(14,165,233,0.1)_50%,transparent_75%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[length:250%_250%] animate-shimmer" />
             <UserPlus className="w-5 h-5 mr-2" />
             Create New Character
           </Button>
