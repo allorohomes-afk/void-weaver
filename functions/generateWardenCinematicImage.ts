@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
         // 2. Build Prompt
         const portraitUrl = character.portrait_url;
-        const outfitStyle = character.outfit_style || 'field';
+        const outfitStyle = character.outfit_style || 'street_ops';
         const roleHint = visual_role_hint || 'neutral';
         const toneText = tone || 'cinematic';
         const contextText = scene_context || 'a scene in the city';
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
           star_fleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
           infiltration_suit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
         };
-        const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.field;
+        const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.street_ops;
 
         // Construct the prompt enforcing consistency
         let prompt = `
