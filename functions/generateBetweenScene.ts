@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
         // 3. Generate Content via LLM (Text + NPC Updates + Visual Prompt)
         const systemPrompt = `
-            You are generating a "Between Scene" moment for a narrative RPG.
+            You are generating a "Between Scene" moment for a "Warden Saga" - a retro 1980s-90s anime space opera RPG.
             Category: ${category}
             
             Context:
@@ -61,9 +61,14 @@ Deno.serve(async (req) => {
             Action: ${prevChoice ? prevChoice.label : "Transition"}
             Character: ${character.name} (${character.face_vibe}, ${character.outfit_style} uniform)
 
+            Style Guide:
+            - Mood: Optimistic, clean, sleek, nostalgic sci-fi.
+            - Visuals: Neon cyan, deep navy, HUD overlays, scanlines, analog technology, high contrast.
+            - Tone: Classic anime melodrama mixed with grounded emotion.
+
             Outputs needed:
-            1. Cinematic Text (3-6 sentences): Show peer reactions, environmental cues, emotional shifts. No moralizing.
-            2. Visual Prompt: For AI image generation. Photorealistic, cinematic, moody lighting.
+            1. Cinematic Text (3-6 sentences): Describe the moment using anime tropes (wind blowing hair, dramatic lighting, internal monologues) and sci-fi elements (holograms, mechs, starships).
+            2. Visual Prompt: For AI image generation. Vintage 1980s anime style, cel-shaded, hand-painted background aesthetic.
             3. NPC Memory Updates: Identify if any named NPCs (from context) should remember this moment (respect, fear, safety, etc).
         `;
 

@@ -16,36 +16,35 @@ Deno.serve(async (req) => {
         const perimeterId = getSceneId('mission5_perimeter');
         const convergenceId = getSceneId('mission5_convergence');
         const exitId = getSceneId('mission5_exit');
-        const act3Id = scenes.find(s => s.key === 'act3_start')?.id || exitId; // Fallback
 
         if (!entryId) return Response.json({ error: 'Scenes not found. Run previous step first.' }, { status: 400 });
 
         // 2. Create Choices
         const choicesData = [
             // Entry Choices
-            { scene_id: entryId, label: "Go to the Lower District’s hidden door", next_scene_id: doorId, risk_level: "high", visual_role_hint: "protector" },
-            { scene_id: entryId, label: "Return briefly to the Quiet Clinic", next_scene_id: clinicId, risk_level: "low", visual_role_hint: "supporter" },
-            { scene_id: entryId, label: "Walk the perimeter and watch the streets", next_scene_id: perimeterId, risk_level: "medium", visual_role_hint: "bystander" },
+            { scene_id: entryId, label: "Access Sub-Sector 4's maintenance hatch", next_scene_id: doorId, risk_level: "high", visual_role_hint: "protector" },
+            { scene_id: entryId, label: "Return to Med-Bay 7", next_scene_id: clinicId, risk_level: "low", visual_role_hint: "supporter" },
+            { scene_id: entryId, label: "Patrol the Promenade Deck perimeter", next_scene_id: perimeterId, risk_level: "medium", visual_role_hint: "bystander" },
 
             // Hidden Door Choices
-            { scene_id: doorId, label: "Call softly into the dark", next_scene_id: convergenceId, risk_level: "medium", visual_role_hint: "mediator" },
-            { scene_id: doorId, label: "Move toward the footsteps", next_scene_id: convergenceId, risk_level: "high", visual_role_hint: "aggressor" },
-            { scene_id: doorId, label: "Retreat slightly and observe", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
+            { scene_id: doorId, label: "Project voice through external comms", next_scene_id: convergenceId, risk_level: "medium", visual_role_hint: "mediator" },
+            { scene_id: doorId, label: "Engage thrusters to intercept", next_scene_id: convergenceId, risk_level: "high", visual_role_hint: "aggressor" },
+            { scene_id: doorId, label: "Hold position and scan", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
 
             // Clinic Choices
-            { scene_id: clinicId, label: "Ask Rhea what’s wrong", next_scene_id: convergenceId, risk_level: "medium", visual_role_hint: "supporter" },
-            { scene_id: clinicId, label: "Help Soren organize supplies", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "supporter" },
-            { scene_id: clinicId, label: "Watch Eliar’s body language", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
+            { scene_id: clinicId, label: "Query Rhea about her distress signal", next_scene_id: convergenceId, risk_level: "medium", visual_role_hint: "supporter" },
+            { scene_id: clinicId, label: "Assist Soren with the med-synth calibration", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "supporter" },
+            { scene_id: clinicId, label: "Analyze Eliar's bio-readings", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
 
             // Perimeter Choices
-            { scene_id: perimeterId, label: "Approach calmly", next_scene_id: convergenceId, risk_level: "medium", visual_role_hint: "mediator" },
-            { scene_id: perimeterId, label: "Keep distance and listen", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
-            { scene_id: perimeterId, label: "Walk past without stopping", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
+            { scene_id: perimeterId, label: "Initiate diplomatic protocol", next_scene_id: convergenceId, risk_level: "medium", visual_role_hint: "mediator" },
+            { scene_id: perimeterId, label: "Monitor comms traffic silently", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
+            { scene_id: perimeterId, label: "Bypass without engaging", next_scene_id: convergenceId, risk_level: "low", visual_role_hint: "bystander" },
 
             // Convergence Choices
-            { scene_id: convergenceId, label: "Follow the political thread", next_scene_id: exitId, risk_level: "medium", visual_role_hint: "mediator" },
-            { scene_id: convergenceId, label: "Follow the Brotherhood thread", next_scene_id: exitId, risk_level: "high", visual_role_hint: "protector" },
-            { scene_id: convergenceId, label: "Follow the Lantern thread", next_scene_id: exitId, risk_level: "medium", visual_role_hint: "supporter" },
+            { scene_id: convergenceId, label: "Trace the political data-stream", next_scene_id: exitId, risk_level: "medium", visual_role_hint: "mediator" },
+            { scene_id: convergenceId, label: "Pursue the Syndicate frequency", next_scene_id: exitId, risk_level: "high", visual_role_hint: "protector" },
+            { scene_id: convergenceId, label: "Follow the Lotus signal", next_scene_id: exitId, risk_level: "medium", visual_role_hint: "supporter" },
 
             // Exit Choices
             { scene_id: exitId, label: "Prepare for Act II Mission 6", next_scene_id: null, risk_level: "medium", visual_role_hint: "protector" } // Terminus
@@ -70,53 +69,53 @@ Deno.serve(async (req) => {
         const reactionsData = [
             // Door: Call Softly
             { 
-                choice_id: choiceMap.get("Call softly into the dark"), 
-                text: "A shadow detaches itself from the wall. 'You're louder than you think, Warden.' It's a warning, but not a threat.", 
+                choice_id: choiceMap.get("Project voice through external comms"), 
+                text: "A silhouette detaches from the steam-vent shadows. 'Your audio gain is high, Warden.' A warning, broadcast on an open channel.", 
                 tone: "neutral" 
             },
             { 
-                choice_id: choiceMap.get("Call softly into the dark"), 
+                choice_id: choiceMap.get("Project voice through external comms"), 
                 required_skill_id: skillConflictContainment,
-                text: "You project a calm authority. The figure steps into the light, hands raised. 'I see you're not here to break bones. Good.'", 
+                text: "You project a calm, harmonic frequency. The figure steps into the neon light, hands visible. 'I see you're not here to overload the grid. Good.'", 
                 tone: "relieved" 
             },
             
             // Door: Move Toward
             { 
-                choice_id: choiceMap.get("Move toward the footsteps"), 
-                text: "The footsteps scramble away. A crate crashes down, blocking your path. You lost them.", 
+                choice_id: choiceMap.get("Engage thrusters to intercept"), 
+                text: "The target engages optical camo. A heavy crate crashes down, blocking your path. Signal lost.", 
                 tone: "tense" 
             },
             { 
-                choice_id: choiceMap.get("Move toward the footsteps"), 
+                choice_id: choiceMap.get("Engage thrusters to intercept"), 
                 required_skill_id: skillSafePositioning,
-                text: "You anticipate their flight path and cut them off. The runner freezes, trapped by your positioning alone.", 
+                text: "You calculate their trajectory and cut off the escape vector. The runner freezes, trapped by your superior positioning.", 
                 tone: "ominous" 
             },
 
             // Clinic: Ask Rhea
             { 
-                choice_id: choiceMap.get("Ask Rhea what’s wrong"), 
-                text: "Rhea looks away, scrubbing a stain on the counter. 'Nothing. Just tired.' She doesn't trust you yet.", 
+                choice_id: choiceMap.get("Query Rhea about her distress signal"), 
+                text: "Rhea looks away, adjusting a holographic display. 'Glitch in the system. Just tired.' Her bio-metrics show elevated stress.", 
                 tone: "awkward" 
             },
             { 
-                choice_id: choiceMap.get("Ask Rhea what’s wrong"), 
+                choice_id: choiceMap.get("Query Rhea about her distress signal"), 
                 required_skill_id: skillSoftListening,
-                text: "Rhea meets your eyes, her guard dropping. 'They took her. Last night. One of the girls from the market. The Brotherhood...' She whispers the truth she's been hiding.", 
+                text: "Rhea meets your gaze, her guard dropping. 'They took her. Last cycle. One of the couriers from the market. The Syndicate...' She whispers the truth.", 
                 tone: "hopeful" 
             },
 
             // Perimeter: Approach Calmly
             { 
-                choice_id: choiceMap.get("Approach calmly"), 
-                text: "The Wardens fall silent, eyeing you with suspicion. 'Lost your way, hero?' One sneers.", 
+                choice_id: choiceMap.get("Initiate diplomatic protocol"), 
+                text: "The Wardens silence their comms, eyeing you with suspicion. 'Lost your frequency, hero?' One sneers through their helmet speaker.", 
                 tone: "tense" 
             },
             { 
-                choice_id: choiceMap.get("Approach calmly"), 
+                choice_id: choiceMap.get("Initiate diplomatic protocol"), 
                 required_skill_id: skillPeerHoldLine,
-                text: "You walk into their circle without breaking stride. Their mockery dies in their throats. You hold the silence until they look away.", 
+                text: "You transmit a code of neutrality. Their mockery dies in the static. You hold the connection until they look away.", 
                 tone: "neutral" 
             },
         ];
@@ -131,7 +130,7 @@ Deno.serve(async (req) => {
             if (!processedLabels.has(label)) {
                 reactionsData.push({
                     choice_id: id,
-                    text: "The moment passes, leaving a weight in the air.",
+                    text: "The moment hangs in the static of the air filters.",
                     tone: "neutral"
                 });
             }
@@ -143,21 +142,21 @@ Deno.serve(async (req) => {
         const cluesData = [
             {
                 scene_id: doorId,
-                description: "A scuff mark on the floor suggests a struggle, but the dust is undisturbed nearby. Staged.",
+                description: "A thermal signature on the floor suggests recent activity, but the dust layer is undisturbed. Holographic decoy.",
                 insight_requirement: 10,
                 required_skill_id: skillSpotInconsistencies,
                 is_truth: true
             },
             {
                 scene_id: doorId,
-                description: "A discarded Brotherhood sash. It's too clean to be accidental.",
+                description: "A discarded Syndicate datachip. It's too pristine to be accidental junk.",
                 insight_requirement: 15,
                 required_skill_id: skillPredictEscalation,
                 is_misleading: true // It's a plant
             },
             {
                 scene_id: clinicId,
-                description: "Eliar arranges three vials in a triangle. A signal used by the Hidden Lanterns.",
+                description: "Eliar arranges three bio-vials in a triangle. A code used by the Neon Lotus collective.",
                 insight_requirement: 12,
                 // required_skill_id: skillNeuroInclusiveLeadership // Assuming this exists or similar
                 is_truth: true
@@ -166,7 +165,7 @@ Deno.serve(async (req) => {
         
         await base44.entities.InvestigationClue.bulkCreate(cluesData);
 
-        return Response.json({ status: 'success', message: 'Mission 5 Created' });
+        return Response.json({ status: 'success', message: 'Mission 5 Created (Retro Anime Version)' });
 
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });

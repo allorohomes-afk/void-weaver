@@ -65,7 +65,9 @@ Deno.serve(async (req) => {
         - The Warden MUST be the clear central figure.
         - The Warden MUST match the reference image face and the described uniform.
         - If other uniformed characters appear, they must have clearly different faces/hair.
-        - Style: Cinematic, grounded, realistic lighting, muted palette, high detail.
+        - Style: Vintage 1980s-90s anime space opera, cel-animated, hand-painted watercolor backgrounds.
+        - Colors: Dark navy/slate backgrounds, neon cyan/magenta highlights.
+        - Vibe: High contrast, sharp lines, retro-future technology.
         `;
 
         if (portraitUrl) {
