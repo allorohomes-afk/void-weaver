@@ -79,6 +79,8 @@ export default function SceneView() {
   useEffect(() => {
     if (character && currentScene) {
         setCinematicData(null); // Reset when scene changes
+        setReactionNode(null);
+        setBetweenSceneData(null);
         prepareSceneCinematic(character.id, currentScene.id).then(data => {
             setCinematicData(data);
         }).catch(err => console.error("Cinematic prep failed:", err));
