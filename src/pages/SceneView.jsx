@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { uniqBy } from 'lodash';
 import StatsPanel from '../components/scene/StatsPanel';
 import RelationshipsSummary from '../components/scene/RelationshipsSummary';
 import WorldContextPanel from '../components/scene/WorldContextPanel';
@@ -90,7 +91,9 @@ export default function SceneView() {
   const { data: choices = [] } = useQuery({
     queryKey: ['choices', currentScene?.id],
     queryFn: async () => {
-      return await base44.entities.Choice.filter({ scene_id: currentScene.id });
+      const allChoices = await base44.entities.Choice.filter({ scene_id: currentScene.id });
+      // Deduplicate choices based on label and next_scene_id to prevent duplicates
+      return uniqBy(allChoices, (c) => `${c.label}-${c.next_scene_id}`);
     },
     enabled: !!currentScene?.id
   });
