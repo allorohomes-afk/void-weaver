@@ -412,10 +412,11 @@ export default function SceneView() {
               <Button onClick={() => window.location.reload()} variant="secondary" className="bg-indigo-600 hover:bg-indigo-700 text-white border-none">
                   Re-establish Link (Refresh)
               </Button>
-          <Button onClick={handleBackToCharacters} variant="outline" className="border-slate-700 text-white hover:bg-slate-800">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Characters
-          </Button>
+              <Button onClick={handleBackToCharacters} variant="outline" className="border-slate-700 text-white hover:bg-slate-800">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Characters
+              </Button>
+          </div>
         </div>
       </div>
     );
