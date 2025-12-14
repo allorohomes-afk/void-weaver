@@ -53,7 +53,12 @@ export default function SceneView() {
     const initializeCharacter = async () => {
       if (character) {
         // Apply temporal effects on scene load
-        await base44.functions.invoke('applyLongTermEffects', { character_id: character.id });
+        try {
+            await base44.functions.invoke('applyLongTermEffects', { character_id: character.id });
+        } catch (error) {
+            console.error("Failed to apply long term effects:", error);
+            // Non-critical error, continue initialization
+        }
         
         if (!character.current_scene_id) {
             const scenes = await base44.entities.Scene.filter({ key: 'first_watch_start' });
