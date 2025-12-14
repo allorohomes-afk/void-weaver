@@ -76,20 +76,38 @@ Deno.serve(async (req) => {
              prompt += `\nVisual Description: ${character.character_visual_prompt}`;
         }
 
-        // 3. Call GenerateImage via Leonardo
-        // We use the new backend function for Leonardo
-        const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
-            prompt,
-            width: 1280, // Cinematic aspect
-            height: 720
-        });
-
-        if (leoRes.data.error) {
-            throw new Error(leoRes.data.error);
+        // 3. Call GenerateImage (Try Leonardo -> Fallback to DALL-E)
+        let imageUrl = null;
+        
+        try {
+            const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
+                prompt,
+                width: 1280, // Cinematic aspect
+                height: 720
+            });
+            
+            if (leoRes.data && !leoRes.data.error && leoRes.data.url) {
+                imageUrl = leoRes.data.url;
+            } else {
+                throw new Error(leoRes.data?.error || "Unknown Leonardo error");
+            }
+        } catch (leoError) {
+            console.error("Leonardo generation failed, falling back to DALL-E:", leoError.message);
+            
+            try {
+                // Fallback to DALL-E
+                const dalleRes = await base44.integrations.Core.GenerateImage({
+                    prompt: prompt + " Anime style, cinematic, high quality, 1980s retro anime aesthetic." 
+                });
+                imageUrl = dalleRes.url;
+            } catch (dalleError) {
+                console.error("DALL-E generation failed:", dalleError);
+                throw new Error("All image generation methods failed. Visual systems offline.");
+            }
         }
 
         return Response.json({ 
-            image_url: leoRes.data.url,
+            image_url: imageUrl,
             portrait_version: character.portrait_reference_version || 1
         });
 
