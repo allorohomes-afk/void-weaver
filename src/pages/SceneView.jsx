@@ -543,7 +543,12 @@ export default function SceneView() {
             ) : (
             /* Scene content */
             <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700">
-              {cinematicData?.video_url && (
+              {isCinematicLoading ? (
+                  <div className="mb-6 h-64 w-full rounded-lg bg-slate-900/50 flex flex-col items-center justify-center border border-slate-800 animate-pulse">
+                      <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-4" />
+                      <span className="text-indigo-400 text-sm tracking-widest uppercase">Rendering Neural Feed...</span>
+                  </div>
+              ) : cinematicData?.video_url && (
                   <div className="mb-6 relative rounded-lg overflow-hidden shadow-2xl border border-slate-900">
                       <img 
                         src={cinematicData.video_url} 
