@@ -403,8 +403,15 @@ export default function SceneView() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-white text-xl mb-4">No scene available</p>
-          <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto">The requested scene could not be loaded. It may have been deleted or the character data is corrupted.</p>
+          <p className="text-white text-xl mb-4">Connection Lost to Scene</p>
+          <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto">
+              The scene data ({character?.current_scene_id}) could not be retrieved. 
+              The Void might be interfering.
+          </p>
+          <div className="flex gap-4 justify-center">
+              <Button onClick={() => window.location.reload()} variant="secondary" className="bg-indigo-600 hover:bg-indigo-700 text-white border-none">
+                  Re-establish Link (Refresh)
+              </Button>
           <Button onClick={handleBackToCharacters} variant="outline" className="border-slate-700 text-white hover:bg-slate-800">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Characters
