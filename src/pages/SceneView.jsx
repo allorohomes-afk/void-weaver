@@ -18,6 +18,7 @@ export default function SceneView() {
   const [characterId, setCharacterId] = useState(null);
   const [isProcessingChoice, setIsProcessingChoice] = useState(false);
   const [cinematicData, setCinematicData] = useState(null);
+  const [isCinematicLoading, setIsCinematicLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [showDebugHUD, setShowDebugHUD] = useState(false);
   const [lastChoiceEffect, setLastChoiceEffect] = useState(null);
