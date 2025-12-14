@@ -83,9 +83,15 @@ export default function SceneView() {
         setCinematicData(null); // Reset when scene changes
         setReactionNode(null);
         setBetweenSceneData(null);
+        setIsCinematicLoading(true);
         prepareSceneCinematic(character.id, currentScene.id).then(data => {
             setCinematicData(data);
-        }).catch(err => console.error("Cinematic prep failed:", err));
+        }).catch(err => {
+            console.error("Cinematic prep failed:", err);
+            toast.error("Visual systems offline. Using text-only mode.");
+        }).finally(() => {
+            setIsCinematicLoading(false);
+        });
     }
   }, [character?.id, currentScene?.id]);
 
