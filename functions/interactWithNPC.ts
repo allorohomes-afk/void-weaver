@@ -13,12 +13,13 @@ Deno.serve(async (req) => {
         const character = await base44.entities.Character.filter({ id: character_id }).then(r => r[0]);
         if (!character) return Response.json({ error: 'Character not found' }, { status: 404 });
 
-        const [npc, relationship, memories, politicalState, currentScene] = await Promise.all([
+        const [npc, relationship, memories, politicalState, currentScene, allSkills] = await Promise.all([
             base44.entities.NPC.filter({ id: npc_id }).then(r => r[0]),
             base44.entities.Relationship.filter({ character_id: character_id, npc_id: npc_id }).then(r => r[0]),
             base44.entities.NPCMemory.filter({ character_id: character_id, npc_id: npc_id }),
             base44.entities.PoliticalState.filter({ character_id: character_id }).then(r => r[0]),
-            character.current_scene_id ? base44.entities.Scene.filter({ id: character.current_scene_id }).then(r => r[0]) : null
+            character.current_scene_id ? base44.entities.Scene.filter({ id: character.current_scene_id }).then(r => r[0]) : null,
+            base44.entities.Skill.list()
         ]);
 
         if (!character || !npc) return Response.json({ error: 'Data not found' }, { status: 404 });
@@ -67,12 +68,14 @@ Deno.serve(async (req) => {
             POLITICAL CLIMATE:
             ${politics}
             
+            AVAILABLE SKILLS:
+            ${allSkills.map(s => `- ${s.name} (Key: ${s.key}): ${s.description}`).join('\n')}
+
             INSTRUCTIONS:
-            - Respond to the player's input (or start conversation if input is empty).
-            - React DYNAMICALLY to the player's Insight, Care, and Resolve. If Insight is high, be more guarded or impressed. If Care is high, be more vulnerable.
+            - Respond to the player's input.
+            - React DYNAMICALLY to the player's stats and history.
             - Reference past memories if relevant.
-            - If Trust is high (>5), you may offer a hint or a side job.
-            - If Safety is low (< -3), be hostile or fearful.
+            - If the player demonstrates a specific skill through their words or approach (e.g. empathy -> relational, logic -> critical_thought), AWARD XP.
             
             OUTPUT JSON:
             {
@@ -81,10 +84,12 @@ Deno.serve(async (req) => {
                 "mood": "neutral" | "angry" | "happy" | "fearful" | "suspicious" | "tender",
                 "choices": [
                     { "label": "Player response option 1", "tone": "agressive/empathetic/analytical" },
-                    { "label": "Player response option 2", "tone": "..." },
-                    { "label": "Player response option 3", "tone": "..." }
+                    { "label": "Player response option 2", "tone": "..." }
                 ],
-                "memory_update": { "type": "respect/fear/etc", "notes": "Short summary of this interaction to save" } (optional, if significant)
+                "memory_update": { "type": "respect/fear/etc", "notes": "Short summary" } (optional),
+                "skill_updates": [
+                    { "skill_key": "relational_1", "xp_amount": 10, "reason": "Showed empathy" }
+                ] (optional, max 1-2 skills)
             }
         `;
 
@@ -116,6 +121,18 @@ Deno.serve(async (req) => {
                             type: { type: "string" },
                             notes: { type: "string" }
                         }
+                    },
+                    skill_updates: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                skill_key: { type: "string" },
+                                xp_amount: { type: "integer" },
+                                reason: { type: "string" }
+                            },
+                            required: ["skill_key", "xp_amount"]
+                        }
                     }
                 },
                 required: ["dialogue", "choices"]
@@ -124,16 +141,38 @@ Deno.serve(async (req) => {
 
         // 5. Handle Memory Update (Side Effect)
         if (llmRes.memory_update) {
-            // Check if we should add a new memory
-            // For now, let's just create it. 
-            // In a real app we might debounce or limit memories.
             await base44.entities.NPCMemory.create({
                 npc_id: npc.id,
                 character_id: character.id,
                 memory_type: llmRes.memory_update.type || 'neutral',
-                intensity: 1, // Default, logic could be improved
+                intensity: 1,
                 notes: llmRes.memory_update.notes
             });
+        }
+
+        // 6. Handle Skill Updates
+        if (llmRes.skill_updates && llmRes.skill_updates.length > 0) {
+            for (const update of llmRes.skill_updates) {
+                const existing = await base44.entities.SkillProgression.filter({ 
+                    character_id: character.id, 
+                    skill_key: update.skill_key 
+                });
+
+                if (existing.length > 0) {
+                    await base44.entities.SkillProgression.update(existing[0].id, {
+                        current_xp: (existing[0].current_xp || 0) + update.xp_amount,
+                        last_updated_at: new Date().toISOString()
+                    });
+                } else {
+                    await base44.entities.SkillProgression.create({
+                        character_id: character.id,
+                        skill_key: update.skill_key,
+                        current_xp: update.xp_amount,
+                        level: 1,
+                        last_updated_at: new Date().toISOString()
+                    });
+                }
+            }
         }
 
         return Response.json(llmRes);

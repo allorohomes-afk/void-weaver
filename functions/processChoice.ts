@@ -112,6 +112,31 @@ Deno.serve(async (req) => {
                     await base44.entities.PoliticalState.update(polState.id, polUpdates);
                 }
 
+                // --- Skill Progression ---
+                if (effects.skills) {
+                    for (const [skillKey, xpAmount] of Object.entries(effects.skills)) {
+                        const existing = await base44.entities.SkillProgression.filter({ 
+                            character_id: character.id, 
+                            skill_key: skillKey 
+                        });
+
+                        if (existing.length > 0) {
+                            await base44.entities.SkillProgression.update(existing[0].id, {
+                                current_xp: (existing[0].current_xp || 0) + xpAmount,
+                                last_updated_at: new Date().toISOString()
+                            });
+                        } else {
+                            await base44.entities.SkillProgression.create({
+                                character_id: character.id,
+                                skill_key: skillKey,
+                                current_xp: xpAmount,
+                                level: 1,
+                                last_updated_at: new Date().toISOString()
+                            });
+                        }
+                    }
+                }
+
                 // --- Long Term Effects (Temporary) ---
                 if (effects.duration) {
                      await base44.entities.LongTermEffect.create({
