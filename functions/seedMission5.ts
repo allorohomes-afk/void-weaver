@@ -87,7 +87,7 @@ export default async function handler(req) {
         const choicesData = [
             // Entry Choices
             { scene_id: getId('mission5_entry'), label: "Access Sub-Sector 4's maintenance hatch", next_scene_id: getId('mission5_hidden_door'), risk_level: "high", visual_role_hint: "protector" },
-            { scene_id: getId('mission5_entry'), label: "Return to Med-Bay 7", next_scene_id: getId('mission5_clinic_return'), risk_level: "low", visual_role_hint: "supporter" },
+            { scene_id: getId('mission5_entry'), label: "Head back to Med-Bay 7", next_scene_id: getId('mission5_clinic_return'), risk_level: "low", visual_role_hint: "supporter" },
             { scene_id: getId('mission5_entry'), label: "Patrol the Promenade Deck perimeter", next_scene_id: getId('mission5_perimeter'), risk_level: "medium", visual_role_hint: "bystander" },
 
             // Hidden Door Choices
