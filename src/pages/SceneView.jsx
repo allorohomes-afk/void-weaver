@@ -278,6 +278,7 @@ export default function SceneView() {
          setBetweenSceneData(bslRes.data);
       } catch (err) {
          console.error("BSL Generation failed:", err);
+         toast.error("Transition data corrupted. Skipping reflection layer.");
       } finally {
          setIsGeneratingBSL(false);
       }
