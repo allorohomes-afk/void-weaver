@@ -28,6 +28,12 @@ Deno.serve(async (req) => {
             if (archetypes.length > 0) archetypeData = archetypes[0];
         }
 
+        let archetypeData = null;
+        if (npc && npc.personality_archetype_id) {
+            const archetypes = await base44.entities.PersonalityArchetype.filter({ id: npc.personality_archetype_id });
+            if (archetypes.length > 0) archetypeData = archetypes[0];
+        }
+
         if (!character || !npc) return Response.json({ error: 'Data not found' }, { status: 404 });
 
         // 2. Build Context String
@@ -61,6 +67,14 @@ Deno.serve(async (req) => {
             NPC PROFILE:
             Role: ${npc.role}
             Archetype: ${npc.archetype}
+            ${archetypeData ? `
+            ARCHETYPE TRAITS (${archetypeData.name}):
+            - Behaviors: ${archetypeData.behavioral_traits ? archetypeData.behavioral_traits.join(', ') : 'None'}
+            - Vocal Tics: ${archetypeData.vocal_tics ? archetypeData.vocal_tics.join(', ') : 'None'}
+            - Motivation: ${archetypeData.motivations}
+            - Core Fear: ${archetypeData.core_fear}
+            - Core Desire: ${archetypeData.core_desire}
+            ` : ''}
             
             RELATIONSHIP TO PLAYER:
             ${relContext}
