@@ -299,11 +299,25 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
                       <Button 
                           onClick={handleSeedMission5}
                           variant="outline"
-                          className="w-full border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-xs"
+                          className="w-full border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-xs mb-2"
                       >
                           Seed Mission 5 Content
                       </Button>
-                  </div>
+
+                      <Button 
+                          onClick={async () => {
+                              toast.promise(base44.functions.invoke('seedMicroScripts'), {
+                                  loading: 'Seeding Micro-Skills...',
+                                  success: 'Micro-Skills Database Updated',
+                                  error: 'Failed to seed scripts'
+                              });
+                          }}
+                          variant="outline"
+                          className="w-full border-slate-700 text-emerald-400 hover:text-emerald-300 hover:bg-slate-800 text-xs"
+                      >
+                          Fix Missing Micro-Skills
+                      </Button>
+                      </div>
               </div>
 
             </div>
