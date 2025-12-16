@@ -2,13 +2,27 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Shield, Users, Zap, ChevronRight, X } from 'lucide-react';
+import { Activity, Shield, Users, Zap, ChevronRight, X, Brain, Database } from 'lucide-react';
+import { toast } from "sonner";
 
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, History, BarChart2 } from 'lucide-react';
 
 export default function DebugHUD({ character, factions, factionStatuses, lastEffect, isOpen, onToggle }) {
+  const handleSeedMission5 = async () => {
+      try {
+          toast.promise(base44.functions.invoke('seedMission5'), {
+              loading: 'Seeding Mission 5...',
+              success: (data) => {
+                  return `Mission 5 Created! ${data.data.message}`;
+              },
+              error: 'Failed to seed mission'
+          });
+      } catch (err) {
+          console.error(err);
+      }
+  };
   if (!character) return null;
 
   const { data: choiceHistory } = useQuery({
@@ -266,13 +280,26 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
               </section>
 
               {/* Section G: Skills Link */}
-              <div className="pt-4 border-t border-slate-800">
+              <div className="pt-4 border-t border-slate-800 space-y-3">
                   <Button 
                       onClick={() => window.location.href = '/SkillTreePage'}
                       className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold"
                   >
                       <Brain className="w-3 h-3 mr-2" /> View Skill Tree
                   </Button>
+
+                  <div className="pt-3 border-t border-slate-800">
+                      <h3 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest flex items-center">
+                          <Database className="w-3 h-3 mr-1.5" /> Admin Actions
+                      </h3>
+                      <Button 
+                          onClick={handleSeedMission5}
+                          variant="outline"
+                          className="w-full border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-xs"
+                      >
+                          Seed Mission 5 Content
+                      </Button>
+                  </div>
               </div>
 
             </div>
