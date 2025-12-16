@@ -82,8 +82,9 @@ Deno.serve(async (req) => {
         try {
             const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
                 prompt,
-                width: 1280, // Cinematic aspect
-                height: 720
+                width: 1280, 
+                height: 720,
+                init_image_url: portraitUrl // Pass the portrait for Character Reference
             });
             
             if (leoRes.data && !leoRes.data.error && leoRes.data.url) {
