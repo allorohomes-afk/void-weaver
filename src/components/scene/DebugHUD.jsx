@@ -17,7 +17,11 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
               success: (data) => {
                   return `Mission 5 Created! ${data.data.message}`;
               },
-              error: 'Failed to seed mission'
+              error: (err) => {
+                  console.error("Seeding failed:", err);
+                  const msg = err.response?.data?.error || err.message || 'Unknown error';
+                  return `Failed: ${msg}`;
+              }
           });
       } catch (err) {
           console.error(err);

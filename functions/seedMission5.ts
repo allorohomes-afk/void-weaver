@@ -71,12 +71,12 @@ export default async function handler(req) {
         const sceneMap = new Map(); // key -> id
 
         for (const sceneData of scenesData) {
-            const existing = await base44.entities.Scene.filter({ key: sceneData.key });
+            const existing = await base44.asServiceRole.entities.Scene.filter({ key: sceneData.key });
             if (existing.length > 0) {
-                await base44.entities.Scene.update(existing[0].id, sceneData);
+                await base44.asServiceRole.entities.Scene.update(existing[0].id, sceneData);
                 sceneMap.set(sceneData.key, existing[0].id);
             } else {
-                const newScene = await base44.entities.Scene.create(sceneData);
+                const newScene = await base44.asServiceRole.entities.Scene.create(sceneData);
                 sceneMap.set(sceneData.key, newScene.id);
             }
         }
@@ -117,12 +117,12 @@ export default async function handler(req) {
         // 4. Create/Sync Choices (Deduplicate)
         const createdChoices = [];
         for (const choice of choicesData) {
-            const existing = await base44.entities.Choice.filter({ 
+            const existing = await base44.asServiceRole.entities.Choice.filter({ 
                 scene_id: choice.scene_id, 
                 label: choice.label 
             });
             if (existing.length === 0) {
-                const newChoice = await base44.entities.Choice.create(choice);
+                const newChoice = await base44.asServiceRole.entities.Choice.create(choice);
                 createdChoices.push(newChoice);
             } else {
                 createdChoices.push(existing[0]);
@@ -131,7 +131,7 @@ export default async function handler(req) {
 
         // 5. Create Reactions (Skill Gated)
         const choiceMap = new Map(createdChoices.map(c => [c.label, c.id]));
-        const skills = await base44.entities.Skill.list();
+        const skills = await base44.asServiceRole.entities.Skill.list();
         const getSkillId = (key) => skills.find(s => s.key === key)?.id;
 
         const skillSoftListening = getSkillId('relational_1');
@@ -190,10 +190,10 @@ export default async function handler(req) {
             if (!choiceMap.has(reaction.choice_label)) continue;
             
             const choiceId = choiceMap.get(reaction.choice_label);
-            const existing = await base44.entities.ReactionNode.filter({ choice_id: choiceId, text: reaction.text });
+            const existing = await base44.asServiceRole.entities.ReactionNode.filter({ choice_id: choiceId, text: reaction.text });
             
             if (existing.length === 0) {
-                await base44.entities.ReactionNode.create({
+                await base44.asServiceRole.entities.ReactionNode.create({
                     choice_id: choiceId,
                     text: reaction.text,
                     tone: reaction.tone,
