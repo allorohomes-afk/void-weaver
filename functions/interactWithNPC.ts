@@ -10,12 +10,15 @@ Deno.serve(async (req) => {
         const { character_id, npc_id, player_input, conversation_history = [] } = await req.json();
 
         // 1. Fetch Data
-        const [character, npc, relationship, memories, politicalState] = await Promise.all([
-            base44.entities.Character.filter({ id: character_id }).then(r => r[0]),
+        const character = await base44.entities.Character.filter({ id: character_id }).then(r => r[0]);
+        if (!character) return Response.json({ error: 'Character not found' }, { status: 404 });
+
+        const [npc, relationship, memories, politicalState, currentScene] = await Promise.all([
             base44.entities.NPC.filter({ id: npc_id }).then(r => r[0]),
             base44.entities.Relationship.filter({ character_id: character_id, npc_id: npc_id }).then(r => r[0]),
             base44.entities.NPCMemory.filter({ character_id: character_id, npc_id: npc_id }),
-            base44.entities.PoliticalState.filter({ character_id: character_id }).then(r => r[0])
+            base44.entities.PoliticalState.filter({ character_id: character_id }).then(r => r[0]),
+            character.current_scene_id ? base44.entities.Scene.filter({ id: character.current_scene_id }).then(r => r[0]) : null
         ]);
 
         if (!character || !npc) return Response.json({ error: 'Data not found' }, { status: 404 });
@@ -36,12 +39,17 @@ Deno.serve(async (req) => {
         `;
 
         const politics = politicalState ? `Old Guard: ${politicalState.old_guard_pressure}, Lantern: ${politicalState.lantern_influence}` : "Unknown";
+        const sceneContext = currentScene ? `LOCATION: ${currentScene.title}\nATMOSPHERE: ${currentScene.body_text}` : "Location: Unknown";
 
         // 3. Construct System Prompt
         const systemPrompt = `
             You are roleplaying as ${npc.name}, a ${npc.role} (${npc.archetype}) in a 1980s Anime Cyberpunk RPG.
             
-            TONE: 80s sci-fi anime dub, emotional, atmospheric, slightly melodramatic but grounded in the setting.
+            TONE: 80s sci-fi anime dub. ${npc.voice_style ? `Specific Voice: ${npc.voice_style}` : ''}
+            PERSONALITY: ${npc.personality || "Standard cyberpunk archetype"}
+            
+            CURRENT SCENE CONTEXT:
+            ${sceneContext}
             
             NPC PROFILE:
             Role: ${npc.role}
