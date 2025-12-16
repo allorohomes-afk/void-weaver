@@ -22,6 +22,12 @@ Deno.serve(async (req) => {
             base44.entities.Skill.list()
         ]);
 
+        let archetypeData = null;
+        if (npc && npc.personality_archetype_id) {
+            const archetypes = await base44.entities.PersonalityArchetype.filter({ id: npc.personality_archetype_id });
+            if (archetypes.length > 0) archetypeData = archetypes[0];
+        }
+
         if (!character || !npc) return Response.json({ error: 'Data not found' }, { status: 404 });
 
         // 2. Build Context String
