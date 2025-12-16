@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 // Helper to check conditions
-const checkCondition = (reqs, stats, counts, energies) => {
+const checkCondition = (reqs, stats, counts, energies, progressionMap) => {
     if (!reqs) return true;
 
     // Check Stats
@@ -15,6 +15,14 @@ const checkCondition = (reqs, stats, counts, energies) => {
     if (reqs.energies) {
         for (const [key, val] of Object.entries(reqs.energies)) {
             if ((energies[key] || 0) < val) return false;
+        }
+    }
+
+    // Check Skill Progression (XP)
+    if (reqs.progression) {
+        for (const [key, val] of Object.entries(reqs.progression)) {
+            const currentXP = progressionMap.get(key) || 0;
+            if (currentXP < val) return false;
         }
     }
 
@@ -41,13 +49,17 @@ Deno.serve(async (req) => {
         if (!character_id) return Response.json({ error: 'Missing character_id' }, { status: 400 });
 
         // 1. Fetch Data
-        const [character, skills, existingSkills, choiceHistory, clues] = await Promise.all([
+        const [character, skills, existingSkills, choiceHistory, clues, progression] = await Promise.all([
             base44.entities.Character.filter({ id: character_id }).then(r => r[0]),
             base44.entities.Skill.list(),
             base44.entities.CharacterSkill.filter({ character_id }),
             base44.entities.ChoiceHistory.filter({ character_id }),
-            base44.entities.CharacterInvestigationClue.filter({ character_id })
+            base44.entities.CharacterInvestigationClue.filter({ character_id }),
+            base44.entities.SkillProgression.filter({ character_id })
         ]);
+
+        const progressionMap = new Map();
+        progression.forEach(p => progressionMap.set(p.skill_key, p.current_xp));
 
         if (!character) return Response.json({ error: 'Character not found' }, { status: 404 });
 
@@ -127,7 +139,8 @@ Deno.serve(async (req) => {
                 skill.unlock_requirements, 
                 character, // contains stats like insight, presence
                 counts, 
-                character // contains energies like masculine_energy
+                character, // contains energies like masculine_energy
+                progressionMap
             );
 
             if (met) {

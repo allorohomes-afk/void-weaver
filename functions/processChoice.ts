@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
         const character = characters[0];
         const choice = choices[0];
         let effectApplied = false;
+        let skillProgressions = [];
 
         // 3. Process Effects
         if (choice.effect_script_id) {
@@ -115,6 +116,7 @@ Deno.serve(async (req) => {
                 // --- Skill Progression ---
                 if (effects.skills) {
                     for (const [skillKey, xpAmount] of Object.entries(effects.skills)) {
+                        skillProgressions.push({ skill_key: skillKey, xp_amount: xpAmount });
                         const existing = await base44.entities.SkillProgression.filter({ 
                             character_id: character.id, 
                             skill_key: skillKey 
@@ -296,6 +298,7 @@ Deno.serve(async (req) => {
         return Response.json({ 
             status: 'success', 
             new_skills: newSkills, 
+            skill_progress: skillProgressions,
             selected_reaction_id: selectedReaction ? selectedReaction.id : null,
             generated_reaction: generatedReactionText ? {
                 text: generatedReactionText,
