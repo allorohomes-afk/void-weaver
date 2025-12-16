@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
             - React DYNAMICALLY to the player's stats and history.
             - Reference past memories if relevant.
             - If the player demonstrates a specific skill through their words or approach (e.g. empathy -> relational, logic -> critical_thought), AWARD XP.
+            - If Trust is high or the conversation warrants it, you may OFFER A QUEST (a favor, investigation, or mission).
             
             OUTPUT JSON:
             {
@@ -89,7 +90,8 @@ Deno.serve(async (req) => {
                 "memory_update": { "type": "respect/fear/etc", "notes": "Short summary" } (optional),
                 "skill_updates": [
                     { "skill_key": "relational_1", "xp_amount": 10, "reason": "Showed empathy" }
-                ] (optional, max 1-2 skills)
+                ] (optional, max 1-2 skills),
+                "quest_offer": { "concept": "Investigate the leaking power conduit in Sector 4" } (optional, only if relevant)
             }
         `;
 
@@ -175,7 +177,30 @@ Deno.serve(async (req) => {
             }
         }
 
-        return Response.json(llmRes);
+        // 7. Handle Quest Generation
+        let newQuest = null;
+        if (llmRes.quest_offer) {
+            try {
+                // Call generateQuest function
+                const questRes = await base44.functions.invoke('generateQuest', {
+                    character_id: character.id,
+                    npc_id: npc.id,
+                    concept: llmRes.quest_offer.concept,
+                    source: "NPC Interaction"
+                });
+                
+                if (questRes.data && questRes.data.status === 'success') {
+                    newQuest = questRes.data.quest;
+                }
+            } catch (err) {
+                console.error("Failed to generate quest:", err);
+            }
+        }
+
+        return Response.json({
+            ...llmRes,
+            new_quest: newQuest
+        });
 
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });

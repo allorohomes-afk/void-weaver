@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Loader2, MessageSquare, X, Brain, Heart, Shield } from 'lucide-react';
+import { Loader2, MessageSquare, X, Brain, Heart, Shield, Scroll } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from "sonner";
 
@@ -60,7 +60,14 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
                 });
             });
         }
-    };
+
+        if (data.new_quest) {
+            toast.success(`New Quest: ${data.new_quest.title}`, {
+                description: "Check your Quest Log for details.",
+                icon: <Scroll className="w-4 h-4 text-amber-400" />
+            });
+        }
+        };
 
     const handlePlayerChoice = async (choice) => {
         // Add player message immediately

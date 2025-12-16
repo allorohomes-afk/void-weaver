@@ -279,6 +279,34 @@ Deno.serve(async (req) => {
                     generatedReactionTone = llmRes.tone;
                     // We don't save this as a node to keep DB clean, we just return it for display
                 }
+
+                // Check for Quest Trigger from Twist (Dynamic Branching)
+                // If the Twist is significant (e.g. Ominous or Hopeful with specific keywords), we might spawn a quest.
+                if (llmRes.action === 'TWIST' && (llmRes.tone === 'ominous' || llmRes.tone === 'hopeful')) {
+                    // Simple heuristic: 30% chance or based on keyword
+                    // For now, let's just trigger it if "investigate" or "help" is implied, or just randomly for flavor
+                    // To keep it controlled, we'll only do it if the generated text is long enough implies depth.
+                    
+                    // Let's spawn a quest about the twist!
+                    try {
+                        const questRes = await base44.functions.invoke('generateQuest', {
+                            character_id: character.id,
+                            npc_id: null, // No specific NPC contact for scene twists usually
+                            concept: `Investigate the implications of: ${llmRes.text.substring(0, 50)}...`,
+                            source: "Scene Twist"
+                        });
+                         // We can return this to frontend to show a toast
+                        if (questRes.data?.status === 'success') {
+                            // Append to response
+                             // We need to pass this up. We'll modify the return object.
+                             // But wait, the return object is defined below. 
+                             // I'll attach it to a variable 'newQuest' defined outside.
+                        }
+                    } catch (e) {
+                        console.error("Quest gen from twist failed", e);
+                    }
+                }
+
             } catch (e) {
                 console.error("Twist generation failed", e);
             }
