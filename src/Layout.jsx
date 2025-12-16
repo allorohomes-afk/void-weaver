@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from '@/components/layout/Header';
+import { Toaster } from 'sonner';
 
 export default function Layout({ children }) {
   return (
@@ -55,6 +56,7 @@ export default function Layout({ children }) {
       <div className="relative z-10">
         <Header />
         {children}
+        <Toaster position="top-center" expand={true} richColors />
       </div>
 
       {/* Global Retro Overlays */}
