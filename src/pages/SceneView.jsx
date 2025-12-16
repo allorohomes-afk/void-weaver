@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 import { prepareSceneCinematic } from '@/components/cinematicWorkflow';
 import DebugHUD from '@/components/scene/DebugHUD';
+import LoreMasterPanel from '@/components/scene/LoreMasterPanel';
+import { BookOpen } from 'lucide-react';
 
 export default function SceneView() {
   const [characterId, setCharacterId] = useState(null);
@@ -28,6 +30,7 @@ export default function SceneView() {
   const [betweenSceneData, setBetweenSceneData] = useState(null);
   const [isGeneratingBSL, setIsGeneratingBSL] = useState(false);
   const [activeConversationNPC, setActiveConversationNPC] = useState(null);
+  const [showLoreMaster, setShowLoreMaster] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -472,14 +475,25 @@ export default function SceneView() {
           }}
     >
       <div className="container mx-auto px-4 py-6">
-        <Button 
-          onClick={handleBackToCharacters}
-          variant="ghost"
-          className="mb-4 text-slate-300 hover:text-white hover:bg-slate-800/50"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Characters
-        </Button>
+        <div className="flex justify-between items-center mb-4">
+            <Button 
+              onClick={handleBackToCharacters}
+              variant="ghost"
+              className="text-slate-300 hover:text-white hover:bg-slate-800/50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Characters
+            </Button>
+
+            <Button
+              onClick={() => setShowLoreMaster(true)}
+              variant="outline"
+              className="border-cyan-900/50 text-cyan-400 hover:bg-cyan-950/30 hover:text-cyan-200"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              Neural Archive
+            </Button>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main content */}
@@ -740,12 +754,19 @@ export default function SceneView() {
 
           {/* Dynamic Conversation Modal */}
           {activeConversationNPC && (
-             <ConversationInterface 
-                characterId={character.id} 
-                npc={activeConversationNPC} 
-                onClose={() => setActiveConversationNPC(null)} 
-             />
+           <ConversationInterface 
+              characterId={character.id} 
+              npc={activeConversationNPC} 
+              onClose={() => setActiveConversationNPC(null)} 
+           />
           )}
+
+          {/* Lore Master Panel */}
+          <LoreMasterPanel 
+          characterId={character.id}
+          isOpen={showLoreMaster}
+          onClose={() => setShowLoreMaster(false)}
+          />
             </div>
 
             {/* Debug HUD */}
