@@ -265,7 +265,13 @@ Deno.serve(async (req) => {
                 Task:
                 Determine if a "Plot Twist" or nuanced alteration is needed based on the high emotional stats or lack of standard reaction.
                 If the standard reaction is sufficient, output "KEEP".
-                If a twist is better (e.g., character freezes up due to Fear, or notices something due to Insight), generate the new reaction text.
+                If a twist is better, generate the new reaction text.
+
+                CRITICAL STYLE GUIDELINES:
+                - Focus STRICTLY on the story, the environment, and NPC actions.
+                - Do NOT describe the player's internal thoughts, feelings, or body language (e.g. never say "You feel afraid" or "You step back").
+                - Describe the CONSEQUENCES of the choice on the world.
+                - Keep it cinematic, external, and narrative-driven.
 
                 Output JSON:
                 {
