@@ -113,6 +113,21 @@ Deno.serve(async (req) => {
                     await base44.entities.PoliticalState.update(polState.id, polUpdates);
                 }
 
+                // --- Energies (Masculine/Feminine) ---
+                if (effects.energies) {
+                    const updates = {};
+                    if (effects.energies.masculine_energy) {
+                        updates.masculine_energy = (character.masculine_energy || 50) + effects.energies.masculine_energy;
+                    }
+                    if (effects.energies.feminine_energy) {
+                        updates.feminine_energy = (character.feminine_energy || 50) + effects.energies.feminine_energy;
+                    }
+                    if (Object.keys(updates).length > 0) {
+                        Object.assign(character, updates);
+                        await base44.entities.Character.update(character.id, updates);
+                    }
+                }
+
                 // --- Skill Progression ---
                 if (effects.skills) {
                     for (const [skillKey, xpAmount] of Object.entries(effects.skills)) {
