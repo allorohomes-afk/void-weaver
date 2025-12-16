@@ -237,6 +237,16 @@ export default function SceneView() {
           console.log("Choice already applied, skipping effects.");
       }
 
+      // Handle Skill Progress Notification
+      if (processRes.data?.skill_progress && processRes.data.skill_progress.length > 0) {
+          processRes.data.skill_progress.forEach(p => {
+              toast.success(`Skill Insight Gained: ${p.skill_key}`, {
+                  description: `+${p.xp_amount} XP`,
+                  icon: <Brain className="w-4 h-4 text-emerald-500" />
+              });
+          });
+      }
+
       // Handle Reaction and Transition
       let reactionToDisplay = null;
       

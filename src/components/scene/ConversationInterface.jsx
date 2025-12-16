@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Loader2, MessageSquare, X, Brain, Heart, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from "sonner";
 
 export default function ConversationInterface({ characterId, npc, onClose }) {
     const [history, setHistory] = useState([]);
@@ -39,17 +40,26 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
 
     const handleResponse = (data) => {
         if (!data) return;
-        
+
         const newExchange = {
             role: 'npc',
             text: data.dialogue,
             thought: data.inner_thought,
             mood: data.mood
         };
-        
+
         setHistory(prev => [...prev, newExchange]);
         setCurrentChoices(data.choices || []);
         setMood(data.mood || 'neutral');
+
+        if (data.skill_updates && data.skill_updates.length > 0) {
+            data.skill_updates.forEach(update => {
+                toast.success(`Skill Improved: ${update.skill_key}`, {
+                    description: `+${update.xp_amount} XP (${update.reason || 'Practice'})`,
+                    icon: <Brain className="w-4 h-4 text-emerald-400" />
+                });
+            });
+        }
     };
 
     const handlePlayerChoice = async (choice) => {
