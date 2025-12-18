@@ -42,34 +42,39 @@ Deno.serve(async (req) => {
 
                     // B. Fetch Image Data
                     const imgResp = await fetch(init_image_url);
-                    if (imgResp.ok) {
-                        const imgBlob = await imgResp.blob();
+                    if (!imgResp.ok) throw new Error(`Failed to fetch init image: ${imgResp.statusText}`);
+                    
+                    const imgBlob = await imgResp.blob();
 
-                        // C. Upload to S3
+                    // C. Upload to S3
+                    const uploadResp = await (async () => {
                         if (uploadData.fields) {
                             const fields = JSON.parse(uploadData.fields);
                             const formData = new FormData();
                             Object.entries(fields).forEach(([k, v]) => formData.append(k, v));
                             formData.append('file', imgBlob);
                             
-                            await fetch(uploadData.url, {
+                            return await fetch(uploadData.url, {
                                 method: 'POST',
                                 body: formData
                             });
                         } else {
-                            await fetch(uploadData.url, {
+                            return await fetch(uploadData.url, {
                                 method: 'PUT',
                                 body: imgBlob
                             });
                         }
+                    })();
 
-                        // D. Add to ControlNets (Character Reference)
-                        controlnets.push({
-                            initImageId: uploadData.id,
-                            preprocessorId: 133, // Character Reference
-                            strengthType: "High"
-                        });
-                    }
+                    if (!uploadResp.ok) throw new Error(`Failed to upload init image to Leonardo S3: ${uploadResp.statusText}`);
+
+                    // D. Add to ControlNets (Character Reference)
+                    console.log("Init image uploaded successfully. Adding Character Reference ControlNet.");
+                    controlnets.push({
+                        initImageId: uploadData.id,
+                        preprocessorId: 133, // Character Reference
+                        strengthType: "High"
+                    });
                 }
             } catch (err) {
                 console.error("Failed to process init_image_url:", err);

@@ -21,9 +21,12 @@ export default async function handler(req) {
         const currentScripts = await base44.entities.EffectScript.list();
 
         for (const s of scripts) {
-            if (!currentScripts.find(cs => cs.name === s.name)) {
+            const exists = currentScripts.find(cs => cs.name === s.name);
+            if (!exists) {
                 await base44.entities.EffectScript.create(s);
                 createdCount++;
+            } else {
+                // Optional: Update existing if needed, but for now just skip
             }
         }
 
