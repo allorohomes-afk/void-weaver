@@ -146,6 +146,8 @@ export default async function handler(req) {
                 const newChoice = await base44.asServiceRole.entities.Choice.create(choice);
                 createdChoices.push(newChoice);
             } else {
+                // UPDATE existing choice to ensure effects are applied
+                await base44.asServiceRole.entities.Choice.update(existing[0].id, choice);
                 createdChoices.push(existing[0]);
             }
         }
