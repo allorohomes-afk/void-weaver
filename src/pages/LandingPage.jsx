@@ -49,7 +49,7 @@ export default function LandingPage() {
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 font-orbitron">
               Balance the <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Chaos</span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto mb-10 leading-relaxed">
               In a fractured cyberpunk metropolis, you are a Void Weaver. 
               Master the art of tactical empathy, de-escalate crisis, and reshape the city's fate through connection, not just combat.
             </p>
