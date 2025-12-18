@@ -313,9 +313,26 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
                               });
                           }}
                           variant="outline"
-                          className="w-full border-slate-700 text-emerald-400 hover:text-emerald-300 hover:bg-slate-800 text-xs"
+                          className="w-full border-slate-700 text-emerald-400 hover:text-emerald-300 hover:bg-slate-800 text-xs mb-2"
                       >
                           Fix Missing Micro-Skills
+                      </Button>
+
+                      <Button 
+                          onClick={async () => {
+                              if(confirm("This will reset your progress in Mission 5 to the beginning. Are you sure?")) {
+                                  toast.promise(base44.functions.invoke('resetMission5', { character_id: character.id }), {
+                                      loading: 'Resetting Mission 5...',
+                                      success: 'Mission Reset Complete',
+                                      error: 'Failed to reset mission'
+                                  });
+                                  setTimeout(() => window.location.reload(), 1500);
+                              }
+                          }}
+                          variant="outline"
+                          className="w-full border-red-900/50 text-red-400 hover:bg-red-950/30 text-xs"
+                      >
+                          Restart Mission 5
                       </Button>
                       </div>
               </div>
