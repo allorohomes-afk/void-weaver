@@ -22,12 +22,17 @@ export default async function handler(req) {
             Generate a dynamic side quest (MicroQuest) for a cyberpunk narrative game.
             
             Character: ${character.name} (Role: Warden)
+            Character Stats: Care ${character.care}, Insight ${character.insight}, Resolve ${character.resolve}, Integrity ${character.integrity}
             NPC Contact: ${npc ? npc.name + " (" + npc.role + ")" : "Anonymous Source"}
             Quest Concept: ${concept || "A favor for the faction"}
             Context: ${source || "Interaction"}
             Political State: Old Guard ${politicalState?.old_guard_pressure || 0}, Lantern ${politicalState?.lantern_influence || 0}
             
-            The quest should be short, narrative-focused, and fit the "Void Weaver" setting (cyberpunk/solarpunk blend, emotional stats).
+            The quest should be short, narrative-focused, and fit the "Void Weaver" setting.
+            TAILOR THE QUEST TO THE CHARACTER'S STATS:
+            - High Insight -> Investigation/Mystery focus.
+            - High Care -> Rescue/Support/Mediation focus.
+            - High Resolve -> Defense/Confrontation focus.
             
             Output JSON:
             {

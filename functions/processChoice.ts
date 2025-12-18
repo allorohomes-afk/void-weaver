@@ -230,6 +230,28 @@ Deno.serve(async (req) => {
         // Fetch relationships for deep check
         const relationships = await base44.entities.Relationship.filter({ character_id: character.id });
 
+        // Fetch Choice History for Narrative Branching
+        const recentHistory = await base44.entities.ChoiceHistory.filter({ character_id: character.id }, '-created_date', 5); // Fetch last 5 choices
+        // We need to fetch the actual choice details to analyze them (labels, risks, roles)
+        const historyChoiceIds = recentHistory.map(h => h.choice_id);
+        const historyChoices = [];
+        if (historyChoiceIds.length > 0) {
+             // Basic manual fetch loop as filter with "in" might not be available or efficient
+             for(const hid of historyChoiceIds) {
+                 const c = await base44.entities.Choice.filter({ id: hid });
+                 if(c.length > 0) historyChoices.push(c[0]);
+             }
+        }
+        
+        // Analyze Playstyle
+        const roleCounts = {};
+        historyChoices.forEach(c => {
+            const role = c.visual_role_hint || 'neutral';
+            roleCounts[role] = (roleCounts[role] || 0) + 1;
+        });
+        const dominantRole = Object.keys(roleCounts).reduce((a, b) => roleCounts[a] > roleCounts[b] ? a : b, 'neutral');
+        const playstyleSummary = `Recent Pattern: Mostly ${dominantRole}. Risk Preference: ${historyChoices.filter(c => c.risk_level === 'high').length > 2 ? 'High Risk' : 'Measured'}.`;
+
         if (reactions.length > 0) {
             const unlockedSkills = await base44.entities.CharacterSkill.filter({ character_id: character.id });
             const activeSkillIds = new Set(unlockedSkills.filter(s => s.active).map(s => s.skill_id));
@@ -259,13 +281,23 @@ Deno.serve(async (req) => {
                 - Care: ${character.care}
                 - Fear Freeze: ${character.fear_freeze}
                 - Energy Balance: ${character.masculine_energy}/${character.feminine_energy} (M/F)
+                - Playstyle: ${playstyleSummary}
                 
                 Relationships: ${relationships.map(r => `NPC_${r.npc_id.substr(0,4)}: Trust ${r.trust}, Safety ${r.safety}`).join(', ')}
+                Political State: Old Guard ${character.political_old_guard || 0}, Lantern ${character.political_lantern || 0}
 
                 Task:
-                Determine if a "Plot Twist" or nuanced alteration is needed based on the high emotional stats or lack of standard reaction.
-                If the standard reaction is sufficient, output "KEEP".
-                If a twist is better, generate the new reaction text.
+                Determine if a "Plot Twist" or nuanced alteration is needed.
+                This is an Opportunity for EMERGENT NARRATIVE.
+                
+                TRIGGERS FOR A TWIST:
+                1. Stat Mismatches: Player has high Care but made a ruthless choice (add guilt/hesitation consequences).
+                2. Cumulative Impact: The 'Playstyle' (${dominantRole}) has attracted attention (e.g. if 'aggressor', security is tighter; if 'mediator', people ask for help).
+                3. Political Consequences: Actions affecting the balance of power.
+                4. Relationship Fallout: Betraying a high-trust NPC or impressing a wary one.
+
+                If the standard reaction is sufficient and fits the narrative, output "KEEP".
+                If a twist/alteration improves the story responsiveness, generate the new reaction text.
 
                 CRITICAL STYLE GUIDELINES:
                 - Focus STRICTLY on the story, the environment, and NPC actions.

@@ -93,7 +93,12 @@ Deno.serve(async (req) => {
 
             INSTRUCTIONS:
             - Respond to the player's input.
-            - React DYNAMICALLY to the player's stats and history.
+            - React DYNAMICALLY to the player's stats and history:
+                - High Care (>70): NPC feels safer, opens up emotionally, tone softens.
+                - Low Care (<30): NPC is guarded, cynical, or feels unheard.
+                - High Masculine Energy (>70): NPC respects directness/action, may challenge passivity.
+                - High Feminine Energy (>70): NPC responds to connection/nuance, may be overwhelmed by aggression.
+                - High Insight (>70): NPC knows they can't lie to the player; they are more direct with truth.
             - Reference past memories if relevant.
             - If the player demonstrates a specific skill through their words or approach (e.g. empathy -> relational, logic -> critical_thought), AWARD XP.
             - If Trust is high or the conversation warrants it, you may OFFER A QUEST (a favor, investigation, or mission).
