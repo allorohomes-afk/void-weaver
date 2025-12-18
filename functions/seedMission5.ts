@@ -83,35 +83,56 @@ export default async function handler(req) {
 
         const getId = (key) => sceneMap.get(key);
 
+        // 2.5 Define Effect Scripts
+        const effectsData = [
+            { name: "effect_m5_protector_high", effect_json: { stats: { masculine_energy: 10, resolve: 5, fear_freeze: 2 } } },
+            { name: "effect_m5_supporter_med", effect_json: { stats: { feminine_energy: 10, care: 5, insight: 2 } } },
+            { name: "effect_m5_mediator_med", effect_json: { stats: { feminine_energy: 5, masculine_energy: 5, insight: 5 } } },
+            { name: "effect_m5_aggressor_high", effect_json: { stats: { masculine_energy: 15, care: -5, old_guard_pressure: 1 } } }, // Political hook
+            { name: "effect_m5_bystander_low", effect_json: { stats: { fear_freeze: -2, insight: 2 } } }
+        ];
+
+        const effectMap = new Map();
+        for (const effect of effectsData) {
+            const existing = await base44.asServiceRole.entities.EffectScript.filter({ name: effect.name });
+            if (existing.length > 0) {
+                effectMap.set(effect.name, existing[0].id);
+            } else {
+                const newEffect = await base44.asServiceRole.entities.EffectScript.create(effect);
+                effectMap.set(effect.name, newEffect.id);
+            }
+        }
+        const getEffect = (name) => effectMap.get(name);
+
         // 3. Define Choices
         const choicesData = [
             // Entry Choices
-            { scene_id: getId('mission5_entry'), label: "Access Sub-Sector 4's maintenance hatch", next_scene_id: getId('mission5_hidden_door'), risk_level: "high", visual_role_hint: "protector" },
-            { scene_id: getId('mission5_entry'), label: "Head back to Med-Bay 7", next_scene_id: getId('mission5_clinic_return'), risk_level: "low", visual_role_hint: "supporter" },
-            { scene_id: getId('mission5_entry'), label: "Patrol the Promenade Deck perimeter", next_scene_id: getId('mission5_perimeter'), risk_level: "medium", visual_role_hint: "bystander" },
+            { scene_id: getId('mission5_entry'), label: "Access Sub-Sector 4's maintenance hatch", next_scene_id: getId('mission5_hidden_door'), risk_level: "high", visual_role_hint: "protector", effect_script_id: getEffect("effect_m5_protector_high") },
+            { scene_id: getId('mission5_entry'), label: "Head back to Med-Bay 7", next_scene_id: getId('mission5_clinic_return'), risk_level: "low", visual_role_hint: "supporter", effect_script_id: getEffect("effect_m5_supporter_med") },
+            { scene_id: getId('mission5_entry'), label: "Patrol the Promenade Deck perimeter", next_scene_id: getId('mission5_perimeter'), risk_level: "medium", visual_role_hint: "bystander", effect_script_id: getEffect("effect_m5_bystander_low") },
 
             // Hidden Door Choices
-            { scene_id: getId('mission5_hidden_door'), label: "Project voice through external comms", next_scene_id: getId('mission5_convergence'), risk_level: "medium", visual_role_hint: "mediator" },
-            { scene_id: getId('mission5_hidden_door'), label: "Engage thrusters to intercept", next_scene_id: getId('mission5_convergence'), risk_level: "high", visual_role_hint: "aggressor" },
-            { scene_id: getId('mission5_hidden_door'), label: "Hold position and scan", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander" },
+            { scene_id: getId('mission5_hidden_door'), label: "Project voice through external comms", next_scene_id: getId('mission5_convergence'), risk_level: "medium", visual_role_hint: "mediator", effect_script_id: getEffect("effect_m5_mediator_med") },
+            { scene_id: getId('mission5_hidden_door'), label: "Engage thrusters to intercept", next_scene_id: getId('mission5_convergence'), risk_level: "high", visual_role_hint: "aggressor", effect_script_id: getEffect("effect_m5_aggressor_high") },
+            { scene_id: getId('mission5_hidden_door'), label: "Hold position and scan", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander", effect_script_id: getEffect("effect_m5_bystander_low") },
 
             // Clinic Choices
-            { scene_id: getId('mission5_clinic_return'), label: "Query Rhea about her distress signal", next_scene_id: getId('mission5_convergence'), risk_level: "medium", visual_role_hint: "supporter" },
-            { scene_id: getId('mission5_clinic_return'), label: "Assist Soren with the med-synth calibration", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "supporter" },
-            { scene_id: getId('mission5_clinic_return'), label: "Analyze Eliar's bio-readings", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander" },
+            { scene_id: getId('mission5_clinic_return'), label: "Query Rhea about her distress signal", next_scene_id: getId('mission5_convergence'), risk_level: "medium", visual_role_hint: "supporter", effect_script_id: getEffect("effect_m5_supporter_med") },
+            { scene_id: getId('mission5_clinic_return'), label: "Assist Soren with the med-synth calibration", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "supporter", effect_script_id: getEffect("effect_m5_supporter_med") },
+            { scene_id: getId('mission5_clinic_return'), label: "Analyze Eliar's bio-readings", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander", effect_script_id: getEffect("effect_m5_bystander_low") },
 
             // Perimeter Choices
-            { scene_id: getId('mission5_perimeter'), label: "Initiate diplomatic protocol", next_scene_id: getId('mission5_convergence'), risk_level: "medium", visual_role_hint: "mediator" },
-            { scene_id: getId('mission5_perimeter'), label: "Monitor comms traffic silently", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander" },
-            { scene_id: getId('mission5_perimeter'), label: "Bypass without engaging", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander" },
+            { scene_id: getId('mission5_perimeter'), label: "Initiate diplomatic protocol", next_scene_id: getId('mission5_convergence'), risk_level: "medium", visual_role_hint: "mediator", effect_script_id: getEffect("effect_m5_mediator_med") },
+            { scene_id: getId('mission5_perimeter'), label: "Monitor comms traffic silently", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander", effect_script_id: getEffect("effect_m5_bystander_low") },
+            { scene_id: getId('mission5_perimeter'), label: "Bypass without engaging", next_scene_id: getId('mission5_convergence'), risk_level: "low", visual_role_hint: "bystander", effect_script_id: getEffect("effect_m5_bystander_low") },
 
             // Convergence Choices
-            { scene_id: getId('mission5_convergence'), label: "Trace the political data-stream", next_scene_id: getId('mission5_exit'), risk_level: "medium", visual_role_hint: "mediator" },
-            { scene_id: getId('mission5_convergence'), label: "Pursue the Syndicate frequency", next_scene_id: getId('mission5_exit'), risk_level: "high", visual_role_hint: "protector" },
-            { scene_id: getId('mission5_convergence'), label: "Follow the Lotus signal", next_scene_id: getId('mission5_exit'), risk_level: "medium", visual_role_hint: "supporter" },
+            { scene_id: getId('mission5_convergence'), label: "Trace the political data-stream", next_scene_id: getId('mission5_exit'), risk_level: "medium", visual_role_hint: "mediator", effect_script_id: getEffect("effect_m5_mediator_med") },
+            { scene_id: getId('mission5_convergence'), label: "Pursue the Syndicate frequency", next_scene_id: getId('mission5_exit'), risk_level: "high", visual_role_hint: "protector", effect_script_id: getEffect("effect_m5_protector_high") },
+            { scene_id: getId('mission5_convergence'), label: "Follow the Lotus signal", next_scene_id: getId('mission5_exit'), risk_level: "medium", visual_role_hint: "supporter", effect_script_id: getEffect("effect_m5_supporter_med") },
 
             // Exit Choices -> Chapter End (Route handled by SceneView logic based on label, but next_scene_id is fallback)
-            { scene_id: getId('mission5_exit'), label: "Reflect on your path", next_scene_id: getId('chapter_end_balanced'), risk_level: "medium", visual_role_hint: "mediator" }
+            { scene_id: getId('mission5_exit'), label: "Reflect on your path", next_scene_id: getId('chapter_end_balanced'), risk_level: "medium", visual_role_hint: "mediator", effect_script_id: getEffect("effect_m5_mediator_med") }
         ];
 
         // 4. Create/Sync Choices (Deduplicate)
