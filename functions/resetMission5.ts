@@ -35,9 +35,32 @@ export default async function handler(req) {
             });
         }
 
+        // 4. Assign Starter Quest
+        const starterQuest = await base44.entities.MicroQuest.filter({ key: "mq_m5_main" });
+        if (starterQuest.length > 0) {
+            // Check if already assigned
+            const existingMQ = await base44.entities.CharacterMicroQuest.filter({
+                character_id,
+                microquest_id: starterQuest[0].id
+            });
+            
+            if (existingMQ.length === 0) {
+                await base44.entities.CharacterMicroQuest.create({
+                    character_id,
+                    microquest_id: starterQuest[0].id,
+                    status: "active"
+                });
+            } else {
+                // Reset status to active if failed/completed
+                await base44.entities.CharacterMicroQuest.update(existingMQ[0].id, {
+                    status: "active"
+                });
+            }
+        }
+
         return Response.json({ 
             status: 'success', 
-            message: `Reset complete. Deleted ${historyToDelete.length} history records.`,
+            message: `Reset complete. Deleted ${historyToDelete.length} history records. Quest assigned.`,
             entry_scene_id: entryScene?.id 
         });
 

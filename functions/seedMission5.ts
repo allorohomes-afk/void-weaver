@@ -104,6 +104,33 @@ export default async function handler(req) {
         }
         const getEffect = (name) => effectMap.get(name);
 
+        // 2.6 Define MicroQuests
+        const microQuestsData = [
+            {
+                key: "mq_m5_main",
+                title: "Trace the Power Anomaly",
+                body_text: "Investigate the unregistered power usage in Sector 4. Locate the source.",
+                unlock_condition: "Mission Start",
+                completion_criteria: { scene_visit: "mission5_convergence" }
+            },
+            {
+                key: "mq_m5_side_courier",
+                title: "Find the Missing Courier",
+                body_text: "Rhea mentioned a missing courier taken by the Syndicate. Find clues to their location.",
+                unlock_condition: "Speak to Rhea with Empathy",
+                completion_criteria: { clue_count: 3 }
+            }
+        ];
+
+        for (const mq of microQuestsData) {
+            const existing = await base44.asServiceRole.entities.MicroQuest.filter({ key: mq.key });
+            if (existing.length === 0) {
+                await base44.asServiceRole.entities.MicroQuest.create(mq);
+            } else {
+                await base44.asServiceRole.entities.MicroQuest.update(existing[0].id, mq);
+            }
+        }
+
         // 3. Define Choices
         const choicesData = [
             // Entry Choices
