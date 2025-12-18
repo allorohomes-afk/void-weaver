@@ -8,7 +8,12 @@ Deno.serve(async (req) => {
         const user = await base44.auth.me();
         
         if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        if (!LEONARDO_API_KEY) return Response.json({ error: 'Leonardo API Key not configured' }, { status: 500 });
+        
+        // Debugging API Key (Safety check)
+        if (!LEONARDO_API_KEY) {
+            console.error("Leonardo API Key is missing from environment variables");
+            return Response.json({ error: 'Configuration Error: Leonardo_Ai_API secret is missing' }, { status: 500 });
+        }
 
         const { prompt, width = 1024, height = 768, init_image_url } = await req.json();
 
@@ -41,11 +46,6 @@ Deno.serve(async (req) => {
                         const imgBlob = await imgResp.blob();
 
                         // C. Upload to S3
-                        // Note: Leonardo S3 fields need to be handled if provided, but usually it's a PUT to 'url' 
-                        // or POST to 'url' with fields.
-                        // The API returns 'url' and 'fields' (stringified JSON).
-                        // If 'fields' is present, it's a POST with FormData.
-                        
                         if (uploadData.fields) {
                             const fields = JSON.parse(uploadData.fields);
                             const formData = new FormData();
@@ -57,7 +57,6 @@ Deno.serve(async (req) => {
                                 body: formData
                             });
                         } else {
-                            // Simple PUT
                             await fetch(uploadData.url, {
                                 method: 'PUT',
                                 body: imgBlob
@@ -74,23 +73,23 @@ Deno.serve(async (req) => {
                 }
             } catch (err) {
                 console.error("Failed to process init_image_url:", err);
-                // Continue without reference if upload fails
             }
         }
 
-        // --- 2. Generate ---
+        // --- 2. Generate (Standard Configuration) ---
+        // Using DreamShaper v7 for reliability if Phoenix/Alchemy is causing issues
         const payload = {
             prompt: prompt,
             width: width,
             height: height,
             num_images: 1,
-            alchemy: true,
-            photoReal: false,
-            presetStyle: "DYNAMIC",
-            modelId: "e316348f-c0c3-4d6a-9527-660c22dc9142", // Phoenix
+            // alchemy: true, // Disabled to ensure compatibility
+            // presetStyle: "DYNAMIC", // Disabled
+            modelId: "ac614f96-1082-45bf-be9d-757f2d31c174", // DreamShaper v7
             controlnets: controlnets.length > 0 ? controlnets : undefined
         };
 
+        console.log("Sending generation request to Leonardo AI...");
         const genResp = await fetch('https://cloud.leonardo.ai/api/rest/v1/generations', {
             method: 'POST',
             headers: {
@@ -102,8 +101,9 @@ Deno.serve(async (req) => {
         });
 
         if (!genResp.ok) {
-            const err = await genResp.text();
-            throw new Error(`Leonardo Gen Failed: ${err}`);
+            const errText = await genResp.text();
+            console.error("Leonardo Generation Failed:", errText);
+            return Response.json({ error: `Leonardo API Error: ${genResp.status} - ${errText}` }, { status: 500 });
         }
 
         const genData = await genResp.json();
@@ -123,15 +123,19 @@ Deno.serve(async (req) => {
                 const pollData = await pollResp.json();
                 const job = pollData.generations_by_pk;
                 if (job && job.status === 'COMPLETE') imageUrl = job.generated_images[0].url;
-                else if (job && job.status === 'FAILED') throw new Error("Generation Failed");
+                else if (job && job.status === 'FAILED') {
+                    console.error("Job status FAILED");
+                    return Response.json({ error: "Leonardo Generation Job Failed" }, { status: 500 });
+                }
             }
         }
 
-        if (!imageUrl) throw new Error("Timeout");
+        if (!imageUrl) return Response.json({ error: "Generation timed out" }, { status: 504 });
 
         return Response.json({ url: imageUrl });
 
     } catch (error) {
+        console.error("Function Handler Error:", error);
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
