@@ -320,6 +320,25 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
 
                       <Button 
                           onClick={async () => {
+                              if(confirm("Regenerate visual for this specific scene?")) {
+                                  // 1. Delete existing cinematic record
+                                  const currentSceneId = character.current_scene_id;
+                                  const cines = await base44.entities.SceneCinematics.filter({ character_id: character.id, scene_id: currentSceneId });
+                                  if(cines.length > 0) {
+                                      await base44.entities.SceneCinematics.delete(cines[0].id);
+                                  }
+                                  toast.success("Cache cleared. Refreshing to regenerate...");
+                                  setTimeout(() => window.location.reload(), 500);
+                              }
+                          }}
+                          variant="outline"
+                          className="w-full border-slate-700 text-cyan-400 hover:bg-cyan-950/30 text-xs mb-2"
+                      >
+                          Regenerate Scene Visuals
+                      </Button>
+
+                      <Button 
+                          onClick={async () => {
                               if(confirm("This will reset your progress in Mission 5 to the beginning. Are you sure?")) {
                                   toast.promise(base44.functions.invoke('resetMission5', { character_id: character.id }), {
                                       loading: 'Resetting Mission 5...',
