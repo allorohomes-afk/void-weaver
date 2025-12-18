@@ -11,7 +11,7 @@ export default function LandingPage() {
       {/* Navbar Placeholder */}
       <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur border-b border-slate-800">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tighter text-white">
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tighter text-white font-orbitron">
             <div className="w-8 h-8 bg-indigo-600 rounded-sm flex items-center justify-center">
               <span className="text-white font-mono">V</span>
             </div>
@@ -46,7 +46,7 @@ export default function LandingPage() {
             <div className="inline-block mb-4 px-3 py-1 rounded-full bg-indigo-900/30 border border-indigo-500/30 text-indigo-300 text-xs font-mono tracking-widest uppercase">
               System Online // Cycle 404
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 font-orbitron">
               Balance the <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Chaos</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -87,7 +87,7 @@ export default function LandingPage() {
       <section id="features" className="py-24 bg-slate-950 relative border-t border-slate-900">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-white mb-4">Core Directives</h2>
+            <h2 className="text-3xl font-bold text-white mb-4 font-orbitron">Core Directives</h2>
             <p className="text-slate-400">Tools for the modern peacekeeper in a digital age.</p>
           </div>
 
@@ -133,10 +133,10 @@ export default function LandingPage() {
       {/* CTA Footer */}
       <section className="py-24 text-center">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-white mb-8">Ready to Weave?</h2>
+          <h2 className="text-4xl font-bold text-white mb-8 font-orbitron">Ready to Weave?</h2>
           <Button 
             onClick={() => window.location.href = createPageUrl('CharacterSelect')}
-            className="bg-white text-slate-950 hover:bg-slate-200 h-16 px-10 text-xl font-bold rounded-full shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
+            className="bg-white text-slate-950 hover:bg-slate-200 h-16 px-10 text-xl font-bold rounded-full shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] font-orbitron"
           >
             Initialize Character
           </Button>
@@ -155,7 +155,7 @@ function FeatureCard({ icon, title, desc }) {
       <div className="mb-6 bg-slate-950 w-16 h-16 rounded-lg flex items-center justify-center border border-slate-800 group-hover:scale-110 transition-transform">
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+      <h3 className="text-xl font-bold text-white mb-3 font-orbitron">{title}</h3>
       <p className="text-slate-400 leading-relaxed">
         {desc}
       </p>

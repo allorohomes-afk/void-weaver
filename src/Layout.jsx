@@ -4,8 +4,13 @@ import { Toaster } from 'sonner';
 
 export default function Layout({ children, currentPageName }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans relative">
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-rajdhani relative">
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+
         /* Scanline Animation */
         @keyframes scanline-move {
           0% { transform: translateY(0); }

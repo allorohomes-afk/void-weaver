@@ -55,7 +55,7 @@ export default function Header() {
             )}
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-slate-100 tracking-wider leading-none group-hover:text-white transition-colors">VOID WEAVER</span>
+            <span className="text-lg font-bold text-slate-100 tracking-wider leading-none group-hover:text-white transition-colors font-orbitron">VOID WEAVER</span>
             <span className="text-[10px] text-slate-500 uppercase tracking-[0.2em] leading-none group-hover:text-indigo-400 transition-colors">Simulation</span>
           </div>
         </Link>
