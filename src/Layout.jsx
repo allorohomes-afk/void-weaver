@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '@/components/layout/Header';
 import { Toaster } from 'sonner';
 
-export default function Layout({ children }) {
+export default function Layout({ children, currentPageName }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans relative">
       <style>{`
@@ -54,7 +54,7 @@ export default function Layout({ children }) {
 
       {/* Content Wrapper */}
       <div className="relative z-10">
-        <Header />
+        {currentPageName !== 'LandingPage' && <Header />}
         {children}
         <Toaster position="top-center" expand={true} richColors />
       </div>

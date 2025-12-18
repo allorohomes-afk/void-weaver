@@ -36,7 +36,7 @@ export default function Header() {
   return (
     <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 supports-[backdrop-filter]:bg-slate-950/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to={createPageUrl('CharacterSelect')} className="flex items-center gap-3 group">
+        <Link to={createPageUrl('LandingPage')} className="flex items-center gap-3 group">
           <div className="relative group/logo cursor-pointer" onClick={generateLogo} title="Click to generate new logo">
             <div className="absolute inset-0 bg-indigo-500 blur-sm opacity-50 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"></div>
             <div className="relative w-8 h-8 bg-slate-900 border border-slate-700 rounded-lg flex items-center justify-center group-hover:border-indigo-500 transition-colors duration-300 overflow-hidden">
@@ -59,6 +59,14 @@ export default function Header() {
             <span className="text-[10px] text-slate-500 uppercase tracking-[0.2em] leading-none group-hover:text-indigo-400 transition-colors">Simulation</span>
           </div>
         </Link>
+        <div className="flex items-center gap-4">
+            <Link to={createPageUrl('LandingPage')} className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                Home
+            </Link>
+            <Link to={createPageUrl('CharacterSelect')} className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                Characters
+            </Link>
+        </div>
       </div>
     </header>
   );
