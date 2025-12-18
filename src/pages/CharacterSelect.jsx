@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import CharacterCard from '../components/character/CharacterCard';
 import CharacterForm from '../components/character/CharacterForm';
 
@@ -10,6 +11,8 @@ export default function CharacterSelect() {
   const [showForm, setShowForm] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [bgUrl, setBgUrl] = useState(localStorage.getItem('character_select_bg_url'));
+  const [isGeneratingBg, setIsGeneratingBg] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -116,6 +119,32 @@ export default function CharacterSelect() {
     setEditingCharacter(null);
   };
 
+  const generateBackground = async () => {
+    if (!confirm("Generate a new AI background? This uses credits.")) return;
+    
+    setIsGeneratingBg(true);
+    try {
+        const res = await base44.functions.invoke('generateLeonardoImage', {
+            prompt: "Futuristic high-tech character creation interface background, cyberpunk laboratory, data streams, neon blue and purple lighting, dark atmosphere, depth of field, 8k resolution, cinematic, highly detailed, sci-fi interior, wide angle",
+            width: 1472,
+            height: 832
+        });
+        
+        if (res.data.url) {
+            setBgUrl(res.data.url);
+            localStorage.setItem('character_select_bg_url', res.data.url);
+            toast.success("New background generated!");
+        } else {
+            throw new Error(res.data.error || "Generation failed");
+        }
+    } catch (error) {
+        console.error(error);
+        toast.error("Failed to generate background");
+    } finally {
+        setIsGeneratingBg(false);
+    }
+  };
+
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617] flex items-center justify-center">
@@ -125,11 +154,33 @@ export default function CharacterSelect() {
     }
 
     return (
-    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617] p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Your Characters</h1>
-          <p className="text-slate-300">Select a character to continue your journey</p>
+    <div 
+        className="min-h-screen bg-cover bg-center bg-fixed p-6 relative transition-all duration-1000"
+        style={{
+            backgroundImage: bgUrl ? `linear-gradient(rgba(2, 6, 23, 0.85), rgba(15, 23, 42, 0.9)), url(${bgUrl})` : undefined,
+            backgroundColor: !bgUrl ? '#020617' : undefined
+        }}
+    >
+      {/* Fallback gradient if no image */}
+      {!bgUrl && <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617] -z-10"></div>}
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2 font-orbitron">Your Characters</h1>
+            <p className="text-slate-300 font-rajdhani">Select a character to continue your journey</p>
+          </div>
+          
+          <Button
+            onClick={generateBackground}
+            disabled={isGeneratingBg}
+            variant="ghost"
+            size="sm"
+            className="text-slate-500 hover:text-cyan-400 hover:bg-slate-900/50"
+            title="Generate New Background Theme"
+          >
+            {isGeneratingBg ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+          </Button>
         </div>
 
         {!showForm && (
