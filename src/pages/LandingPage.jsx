@@ -35,7 +35,7 @@ export default function LandingPage() {
       <section className="relative min-h-screen flex items-center justify-center pt-20">
         {/* Background Elements */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950 pointer-events-none" />
-        <div className="absolute inset-0 bg-[url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693c0b03019af794e0665c28/a4d6af00b_Leonardo_Anime_XL_A_clean_highdetail_2D_technical_blueprint_sk_0.jpg')] bg-cover bg-center opacity-10 mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693c0b03019af794e0665c28/a4d6af00b_Leonardo_Anime_XL_A_clean_highdetail_2D_technical_blueprint_sk_0.jpg')] bg-cover bg-center opacity-40 pointer-events-none" />
         
         <div className="container mx-auto px-6 relative z-10 text-center">
           <motion.div
