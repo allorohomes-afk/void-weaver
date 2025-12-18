@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
         // 3. Call GenerateImage (Try Leonardo -> Fallback to DALL-E)
         let imageUrl = null;
         
+        let provider = 'leonardo';
         try {
             const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
                 prompt,
@@ -94,6 +95,7 @@ Deno.serve(async (req) => {
             }
         } catch (leoError) {
             console.error("Leonardo generation failed, falling back to DALL-E:", leoError.message);
+            provider = 'dalle';
             
             try {
                 // Fallback to DALL-E
@@ -109,7 +111,9 @@ Deno.serve(async (req) => {
 
         return Response.json({ 
             image_url: imageUrl,
-            portrait_version: character.portrait_reference_version || 1
+            portrait_version: character.portrait_reference_version || 1,
+            provider: provider,
+            error: provider === 'dalle' ? "Leonardo AI failed, used fallback." : null
         });
 
     } catch (error) {
