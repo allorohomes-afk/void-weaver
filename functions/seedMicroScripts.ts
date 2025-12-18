@@ -18,15 +18,13 @@ export default async function handler(req) {
         ];
 
         let createdCount = 0;
-        const currentScripts = await base44.entities.EffectScript.list();
+        const currentScripts = await base44.asServiceRole.entities.EffectScript.list();
 
         for (const s of scripts) {
             const exists = currentScripts.find(cs => cs.name === s.name);
             if (!exists) {
-                await base44.entities.EffectScript.create(s);
+                await base44.asServiceRole.entities.EffectScript.create(s);
                 createdCount++;
-            } else {
-                // Optional: Update existing if needed, but for now just skip
             }
         }
 
