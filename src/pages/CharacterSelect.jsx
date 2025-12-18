@@ -139,7 +139,7 @@ export default function CharacterSelect() {
         }
     } catch (error) {
         console.error(error);
-        toast.error("Failed to generate background");
+        toast.error(`Failed to generate background: ${error.message}`);
     } finally {
         setIsGeneratingBg(false);
     }

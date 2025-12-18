@@ -88,7 +88,6 @@ Deno.serve(async (req) => {
             photoReal: false,
             presetStyle: "DYNAMIC",
             modelId: "e316348f-c0c3-4d6a-9527-660c22dc9142", // Phoenix
-            contrastRatio: 0.5,
             controlnets: controlnets.length > 0 ? controlnets : undefined
         };
 
