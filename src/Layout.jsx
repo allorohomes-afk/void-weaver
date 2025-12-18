@@ -59,7 +59,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Content Wrapper */}
       <div className="relative z-10">
-        {currentPageName !== 'LandingPage' && <Header />}
+        {currentPageName !== 'Home' && currentPageName !== 'LandingPage' && <Header />}
         {children}
         <Toaster position="top-center" expand={true} richColors />
       </div>

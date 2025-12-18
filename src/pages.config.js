@@ -2,7 +2,7 @@ import CharacterSelect from './pages/CharacterSelect';
 import SceneView from './pages/SceneView';
 import PortraitCreatorPage from './pages/PortraitCreatorPage';
 import SkillTreePage from './pages/SkillTreePage';
-import LandingPage from './pages/LandingPage';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -11,7 +11,7 @@ export const PAGES = {
     "SceneView": SceneView,
     "PortraitCreatorPage": PortraitCreatorPage,
     "SkillTreePage": SkillTreePage,
-    "LandingPage": LandingPage,
+    "Home": Home,
 }
 
 export const pagesConfig = {
