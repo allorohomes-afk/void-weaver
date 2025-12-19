@@ -300,8 +300,9 @@ Deno.serve(async (req) => {
                 If a twist/alteration improves the story responsiveness, generate the new reaction text.
 
                 CRITICAL STYLE GUIDELINES:
+                - ADDRESS THE PLAYER AS "YOU". Never refer to "the player" or "the character".
                 - Focus STRICTLY on the story, the environment, and NPC actions.
-                - Do NOT describe the player's internal thoughts, feelings, or body language (e.g. never say "You feel afraid" or "You step back").
+                - Do NOT describe the player's internal thoughts, feelings, or body language (e.g. never say "You feel afraid" or "You step back"). Instead describe what happens TO them or AROUND them.
                 - Describe the CONSEQUENCES of the choice on the world.
                 - Keep it cinematic, external, and narrative-driven.
 
