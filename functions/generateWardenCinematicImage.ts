@@ -27,6 +27,24 @@ Deno.serve(async (req) => {
         const toneText = tone || 'cinematic';
         const contextText = scene_context || 'a scene in the city';
 
+        // Extract Physical Description
+        const hairLen = character.hair_length || "average";
+        const hairCol = character.hair_color || "dark";
+        const skinTone = character.skin_tone || "neutral";
+        const bodyType = character.body_type_primary || "average";
+        
+        let physicalDescription = `Skin: ${skinTone}. Body: ${bodyType}.`;
+        
+        // Explicitly handle Bald/Shaved to override anime hair bias
+        const baldKeywords = ["bald", "shaved", "none", "no hair", "clean shaven"];
+        const isBald = baldKeywords.some(k => hairLen.toLowerCase().includes(k));
+        
+        if (isBald) {
+            physicalDescription += " HAIR: BALD / SHAVED HEAD. NO HAIR. SMOOTH SCALP.";
+        } else {
+            physicalDescription += ` Hair: ${hairLen}, ${hairCol}.`;
+        }
+
         // Fetch active skills for modifiers
         let skillModifiers = "";
         try {
@@ -53,7 +71,8 @@ Deno.serve(async (req) => {
         // Construct the prompt enforcing consistency
         let prompt = `
         Subject: The Void Weaver (central character).
-        Reference Character: Use the provided reference image URL for face, skin tone, age, and head shape.
+        Reference Character: Use the provided reference image URL for face structure.
+        PHYSICAL TRAITS: ${physicalDescription}
         Outfit: ${uniformDesc}
         
         Scene Context: ${contextText}
@@ -63,7 +82,7 @@ Deno.serve(async (req) => {
 
         CRITICAL INSTRUCTIONS:
         - The Void Weaver MUST be the clear central figure.
-        - The Void Weaver MUST match the reference image face and the described uniform.
+        - The Void Weaver MUST match the physical traits (especially HAIR/BALDNESS) and the described uniform.
         - If other uniformed characters appear, they must have clearly different faces/hair.
         - Style: Vintage 1980s-90s anime space opera, cel-animated, hand-painted watercolor backgrounds.
         - Colors: Dark navy/slate backgrounds, neon cyan/magenta highlights.
