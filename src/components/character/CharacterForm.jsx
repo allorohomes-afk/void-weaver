@@ -33,6 +33,26 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
   const [generationPrompt, setGenerationPrompt] = useState(initialData?.character_visual_prompt || '');
 
   const bodyTypes = ["Lean", "Average", "Broad", "Soft", "Stocky", "Tall", "Short", "Curvy", "Athletic"];
+
+  const hairTextures = [
+    { value: "1A", label: "1A (Straight - Fine)" },
+    { value: "1B", label: "1B (Straight - Medium)" },
+    { value: "1C", label: "1C (Straight - Coarse)" },
+    { value: "2A", label: "2A (Wavy - Fine)" },
+    { value: "2B", label: "2B (Wavy - Medium)" },
+    { value: "2C", label: "2C (Wavy - Coarse)" },
+    { value: "3A", label: "3A (Curly - Loose)" },
+    { value: "3B", label: "3B (Curly - Tight)" },
+    { value: "3C", label: "3C (Curly - Corkscrews)" },
+    { value: "4A", label: "4A (Coily - Defined)" },
+    { value: "4B", label: "4B (Coily - Z-Pattern)" },
+    { value: "4C", label: "4C (Coily - Tight Kinks)" },
+    { value: "Locs", label: "Locs / Dreads" },
+    { value: "Braids", label: "Braids / Cornrows" },
+    { value: "Twists", label: "Twists" },
+    { value: "Buzz Cut", label: "Buzz Cut / Shaved" },
+    { value: "Bald", label: "Bald / Smooth" }
+  ];
   
   const uniformDescriptions = {
     streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
@@ -277,12 +297,21 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
               </div>
               <div className="space-y-1.5">
                  <Label htmlFor="hairtex" className="text-slate-300">Hair Texture</Label>
-                 <Input
-                  id="hairtex"
-                  value={formData.hair_texture}
-                  onChange={(e) => setFormData({...formData, hair_texture: e.target.value})}
-                  className="bg-slate-900 border-slate-700 text-white"
-                 />
+                 <Select
+                    value={formData.hair_texture}
+                    onValueChange={(value) => setFormData({...formData, hair_texture: value})}
+                 >
+                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                        <SelectValue placeholder="Select Texture" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {hairTextures.map((tex) => (
+                            <SelectItem key={tex.value} value={tex.value}>
+                                {tex.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                 </Select>
               </div>
               <div className="space-y-1.5">
                  <Label htmlFor="haircol" className="text-slate-300">Hair Color</Label>

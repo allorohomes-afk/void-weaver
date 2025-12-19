@@ -32,17 +32,22 @@ Deno.serve(async (req) => {
         const hairCol = character.hair_color || "dark";
         const skinTone = character.skin_tone || "neutral";
         const bodyType = character.body_type_primary || "average";
+        const hairTex = character.hair_texture ? `${character.hair_texture} texture` : "";
         
         let physicalDescription = `Skin: ${skinTone}. Body: ${bodyType}.`;
         
         // Explicitly handle Bald/Shaved to override anime hair bias
         const baldKeywords = ["bald", "shaved", "none", "no hair", "clean shaven"];
-        const isBald = baldKeywords.some(k => hairLen.toLowerCase().includes(k));
+        const isBald = baldKeywords.some(k => hairLen.toLowerCase().includes(k)) || hairTex.toLowerCase().includes("bald");
         
         if (isBald) {
             physicalDescription += " HAIR: BALD / SHAVED HEAD. NO HAIR. SMOOTH SCALP.";
         } else {
-            physicalDescription += ` Hair: ${hairLen}, ${hairCol}.`;
+            physicalDescription += ` Hair: ${hairLen}, ${hairTex}, ${hairCol}.`;
+            // Add specific texture descriptors for 4A-4C
+            if (hairTex.includes("4A") || hairTex.includes("4B") || hairTex.includes("4C")) {
+                physicalDescription += " (Afro-textured, coily/kinky hair).";
+            }
         }
 
         // Fetch active skills for modifiers
