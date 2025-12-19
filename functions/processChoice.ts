@@ -305,6 +305,7 @@ Deno.serve(async (req) => {
                 - Do NOT describe the player's internal thoughts, feelings, or body language (e.g. never say "You feel afraid" or "You step back"). Instead describe what happens TO them or AROUND them.
                 - Describe the CONSEQUENCES of the choice on the world.
                 - Keep it cinematic, external, and narrative-driven.
+                - STRICTLY NO RELIGIOUS REFERENCES. No "gods", "demons", "prayer", "holy", "sacred". Use sci-fi/tech terms (void, signal, entropy, code).
 
                 Output JSON:
                 {

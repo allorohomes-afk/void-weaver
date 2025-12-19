@@ -65,9 +65,11 @@ Deno.serve(async (req) => {
             - Mood: Optimistic, clean, sleek, nostalgic sci-fi.
             - Visuals: Neon cyan, deep navy, HUD overlays, scanlines, analog technology, high contrast.
             - Tone: Classic anime melodrama mixed with grounded emotion.
+            - RESTRICTIONS: NO RELIGIOUS REFERENCES (gods, demons, angels, prayer, holy, etc). Use sci-fi/tech terms only.
 
             Outputs needed:
-            1. Cinematic Text (3-6 sentences): Describe the moment using anime tropes (wind blowing hair, dramatic lighting, internal monologues) and sci-fi elements (holograms, mechs, starships).
+            1. Cinematic Text (3-6 sentences): Describe the moment using anime tropes (dramatic lighting, internal monologues) and sci-fi elements (holograms, mechs, starships).
+               - IMPORTANT: The Character has hair length: "${character.hair_length || 'average'}". If "bald" or "shaved", DO NOT describe wind in hair or brushing hair back.
             2. Visual Prompt: For AI image generation. Vintage 1980s anime style, cel-shaded, hand-painted background aesthetic.
             3. NPC Memory Updates: Identify if any named NPCs (from context) should remember this moment (respect, fear, safety, etc).
         `;

@@ -79,8 +79,10 @@ Deno.serve(async (req) => {
             RELATIONSHIP TO PLAYER:
             ${relContext}
             
-            PLAYER CHARACTER STATS:
+            PLAYER CHARACTER STATS & DESCRIPTION:
             ${charStats}
+            Visuals: ${character.character_visual_prompt || "Standard uniform"}
+            Hair: ${character.hair_length || "average"}. (If "bald" or "shaved", the player has NO hair).
             
             SHARED MEMORIES:
             ${memoryContext || "None"}
@@ -93,6 +95,8 @@ Deno.serve(async (req) => {
 
             INSTRUCTIONS:
             - Respond to the player's input.
+            - NO RELIGIOUS REFERENCES. Do not use terms like "god", "pray", "holy", "demon", "angel", "sacred", etc. Use tech/sci-fi metaphors instead (e.g. "void", "signal", "glitch", "code").
+            - IF DESCRIBING THE PLAYER: Ensure physical descriptions match their stats (e.g. if Bald, do not mention wind in hair).
             - React DYNAMICALLY to the player's stats and history:
                 - High Care (>70): NPC feels safer, opens up emotionally, tone softens.
                 - Low Care (<30): NPC is guarded, cynical, or feels unheard.

@@ -29,6 +29,8 @@ export default async function handler(req) {
             Political State: Old Guard ${politicalState?.old_guard_pressure || 0}, Lantern ${politicalState?.lantern_influence || 0}
             
             The quest should be short, narrative-focused, and fit the "Void Weaver" setting.
+            RESTRICTIONS: NO RELIGIOUS REFERENCES. Avoid "holy", "sacred", "demon", "god", "pray". Use "void", "network", "signal", "protocol".
+
             TAILOR THE QUEST TO THE CHARACTER'S STATS:
             - High Insight -> Investigation/Mystery focus.
             - High Care -> Rescue/Support/Mediation focus.
