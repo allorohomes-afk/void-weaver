@@ -15,71 +15,16 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Configuration Error: Leonardo_Ai_API secret is missing' }, { status: 500 });
         }
 
-        const { prompt, width = 1024, height = 768, init_image_url } = await req.json();
-
-        if (!prompt) return Response.json({ error: 'Missing prompt' }, { status: 400 });
-
-        let controlnets = [];
-        
-        // --- 1. Upload Init Image (if provided) ---
-        if (init_image_url) {
-            try {
-                // A. Get Presigned URL
-                const ext = init_image_url.split('.').pop().split('?')[0] || 'jpg';
-                const initResp = await fetch('https://cloud.leonardo.ai/api/rest/v1/init_image', {
-                    method: 'POST',
-                    headers: {
-                        'accept': 'application/json',
-                        'content-type': 'application/json',
-                        'authorization': `Bearer ${LEONARDO_API_KEY}`
-                    },
-                    body: JSON.stringify({ extension: ext })
-                });
-
-                if (initResp.ok) {
-                    const initData = await initResp.json();
-                    const uploadData = initData.uploadInitImage;
-
-                    // B. Fetch Image Data
-                    const imgResp = await fetch(init_image_url);
-                    if (!imgResp.ok) throw new Error(`Failed to fetch init image: ${imgResp.statusText}`);
-                    
-                    const imgBlob = await imgResp.blob();
-
-                    // C. Upload to S3
-                    const uploadResp = await (async () => {
-                        if (uploadData.fields) {
-                            const fields = JSON.parse(uploadData.fields);
-                            const formData = new FormData();
-                            Object.entries(fields).forEach(([k, v]) => formData.append(k, v));
-                            formData.append('file', imgBlob);
-                            
-                            return await fetch(uploadData.url, {
-                                method: 'POST',
-                                body: formData
-                            });
-                        } else {
-                            return await fetch(uploadData.url, {
-                                method: 'PUT',
-                                body: imgBlob
-                            });
-                        }
-                    })();
-
-                    if (!uploadResp.ok) throw new Error(`Failed to upload init image to Leonardo S3: ${uploadResp.statusText}`);
-
-                    // D. Add to ControlNets (Character Reference)
-                    console.log("Init image uploaded successfully. Adding Character Reference ControlNet.");
-                    controlnets.push({
-                        initImageId: uploadData.id,
-                        preprocessorId: 133, // Character Reference
-                        strengthType: "High"
-                    });
-                }
-            } catch (err) {
-                console.error("Failed to process init_image_url:", err);
-            }
-        }
+        const payload = {
+            prompt: prompt,
+            width: width,
+            height: height,
+            num_images: 1,
+            modelId: "ac614f96-1082-45bf-be9d-757f2d31c174", // DreamShaper v7
+            controlnets: controlnets.length > 0 ? controlnets : undefined,
+            init_image_id: initImageIdForGuidance || undefined, // Use DALL-E image as base
+            init_strength: initImageIdForGuidance ? 0.35 : undefined // Low strength to allow style change but keep comp
+        };
 
         // --- 2. Generate (Standard Configuration) ---
         // Using DreamShaper v7 for reliability if Phoenix/Alchemy is causing issues

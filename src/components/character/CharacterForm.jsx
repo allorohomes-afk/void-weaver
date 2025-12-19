@@ -333,50 +333,50 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
 
         {/* Reference Photo Upload */}
         <div className="space-y-4 pt-4 border-t border-slate-700">
-           <h3 className="text-lg font-medium text-white">Visual Reference (Optional)</h3>
-           <div className="flex items-center gap-4">
-              {formData.reference_photo_url ? (
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-600">
-                      <img src={formData.reference_photo_url} alt="Ref" className="w-full h-full object-cover" />
-                      <Button
-                          size="icon"
-                          variant="secondary"
-                          className="absolute top-1 right-1 h-6 w-6 bg-slate-900/80 hover:bg-slate-900"
-                          onClick={() => setFormData({...formData, reference_photo_url: ''})}
-                      >
-                          <X className="h-3 w-3 text-white" />
-                      </Button>
-                  </div>
-              ) : (
-                  <div 
-                      onClick={() => document.getElementById('form-file-upload').click()}
-                      className="w-24 h-24 rounded-lg border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-slate-800/50 transition-colors"
-                  >
-                      {isUploading ? <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" /> : <Camera className="h-6 w-6 text-slate-500" />}
-                  </div>
-              )}
-              <div className="flex-1">
-                  <p className="text-sm text-slate-400 mb-2">Upload a selfie or reference photo to personalize the generation.</p>
-                  <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => document.getElementById('form-file-upload').click()}
-                      disabled={isUploading}
-                      className="border-slate-600 text-slate-300"
-                  >
-                      <Upload className="w-4 h-4 mr-2" />
-                      {isUploading ? 'Uploading...' : 'Upload Photo'}
-                  </Button>
-                  <input 
-                      id="form-file-upload" 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                  />
-              </div>
+        <h3 className="text-lg font-medium text-white">Visual Reference (Optional)</h3>
+        <div className="flex items-center gap-4">
+           {formData.reference_photo_url ? (
+               <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-600">
+                   <img src={formData.reference_photo_url} alt="Ref" className="w-full h-full object-cover" />
+                   <Button
+                       size="icon"
+                       variant="secondary"
+                       className="absolute top-1 right-1 h-6 w-6 bg-slate-900/80 hover:bg-slate-900"
+                       onClick={() => setFormData({...formData, reference_photo_url: ''})}
+                   >
+                       <X className="h-3 w-3 text-white" />
+                   </Button>
+               </div>
+           ) : (
+               <div 
+                   onClick={() => document.getElementById('form-file-upload').click()}
+                   className="w-24 h-24 rounded-lg border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-slate-800/50 transition-colors"
+               >
+                   {isUploading ? <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" /> : <Camera className="h-6 w-6 text-slate-500" />}
+               </div>
+           )}
+           <div className="flex-1">
+               <p className="text-sm text-slate-400 mb-2">Upload a main reference photo. You can add more angles in the Portrait Creator later.</p>
+               <Button 
+                   type="button" 
+                   variant="outline" 
+                   size="sm"
+                   onClick={() => document.getElementById('form-file-upload').click()}
+                   disabled={isUploading}
+                   className="border-slate-600 text-slate-300"
+               >
+                   <Upload className="w-4 h-4 mr-2" />
+                   {isUploading ? 'Uploading...' : 'Upload Main Photo'}
+               </Button>
+               <input 
+                   id="form-file-upload" 
+                   type="file" 
+                   className="hidden" 
+                   accept="image/*"
+                   onChange={handleFileUpload}
+               />
            </div>
+        </div>
         </div>
 
         {/* Preview Section */}

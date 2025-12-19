@@ -3,9 +3,59 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Upload, User, ArrowLeft, Camera, Save, History, RotateCcw } from 'lucide-react';
+import { Loader2, Upload, User, ArrowLeft, Camera, Save, History, RotateCcw, X } from 'lucide-react';
 import { getLeonardoStyle, generateCharacterPortraitFromPhoto } from '@/components/cinematicWorkflow';
 import PortraitHistoryList from '@/components/character/PortraitHistoryList';
+
+function ReferenceGallery({ characterId }) {
+    const { data: refs, refetch } = useQuery({
+        queryKey: ['charRefs', characterId],
+        queryFn: async () => base44.entities.CharacterReferenceImage.filter({ character_id: characterId }),
+        enabled: !!characterId
+    });
+
+    const uploadMutation = useMutation({
+        mutationFn: async (file) => {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            await base44.entities.CharacterReferenceImage.create({
+                character_id: characterId,
+                image_url: file_url,
+                image_type: 'pose'
+            });
+        },
+        onSuccess: () => refetch()
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id) => base44.entities.CharacterReferenceImage.delete(id),
+        onSuccess: () => refetch()
+    });
+
+    const handleUpload = (e) => {
+        const file = e.target.files[0];
+        if(file) uploadMutation.mutate(file);
+    };
+
+    return (
+        <div className="flex flex-wrap justify-center gap-2">
+            {refs?.map(ref => (
+                <div key={ref.id} className="relative w-16 h-16 rounded border border-slate-700 overflow-hidden group">
+                    <img src={ref.image_url} className="w-full h-full object-cover" />
+                    <button 
+                        onClick={() => deleteMutation.mutate(ref.id)}
+                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-400 transition-opacity"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            ))}
+            <label className="w-16 h-16 rounded border border-dashed border-slate-700 flex items-center justify-center cursor-pointer hover:bg-slate-800 hover:border-slate-500 transition-colors">
+                {uploadMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-slate-500"/> : <Upload className="w-4 h-4 text-slate-500" />}
+                <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={uploadMutation.isPending} />
+            </label>
+        </div>
+    );
+}
 
 export default function PortraitCreatorPage() {
   const [characterId, setCharacterId] = useState(null);
@@ -140,7 +190,7 @@ export default function PortraitCreatorPage() {
                         className="w-48 h-48 rounded-lg border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-slate-800/50 transition-colors"
                     >
                         <Camera className="h-8 w-8 text-slate-500 mb-2" />
-                        <span className="text-slate-500 text-sm">Click to Upload</span>
+                        <span className="text-slate-500 text-sm">Main Reference</span>
                     </div>
                 )}
                 <input 
@@ -150,6 +200,12 @@ export default function PortraitCreatorPage() {
                     accept="image/*"
                     onChange={handleFileUpload}
                 />
+            </div>
+
+            {/* Additional References Gallery */}
+            <div className="space-y-2">
+                <h3 className="text-sm font-medium text-slate-400 text-center">Additional Angles / Expressions</h3>
+                <ReferenceGallery characterId={characterId} />
             </div>
 
             {uploading && <div className="text-center text-indigo-400">Uploading...</div>}
