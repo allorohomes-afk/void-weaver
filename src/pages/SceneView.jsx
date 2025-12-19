@@ -35,6 +35,7 @@ export default function SceneView() {
   const [interactingObjectId, setInteractingObjectId] = useState(null);
   const [tacticalAnalysis, setTacticalAnalysis] = useState(null);
   const [isAnalyzingTactics, setIsAnalyzingTactics] = useState(false);
+  const [generatingAssets, setGeneratingAssets] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -750,7 +751,10 @@ export default function SceneView() {
                     {/* Interactables Grid (Visual) */}
                     {interactables.length > 0 && (
                         <div className="space-y-2 animate-in fade-in zoom-in-95">
-                            <h4 className="w-full text-xs font-bold text-indigo-400 uppercase tracking-widest pl-1">Interactive Environment</h4>
+                            <div className="flex justify-between items-center px-1">
+                                <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Interactive Environment</h4>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest">{interactables.length} Signals Detected</span>
+                            </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {interactables.map(obj => (
                                     <div 
@@ -762,8 +766,15 @@ export default function SceneView() {
                                             {obj.image_url ? (
                                                 <img src={obj.image_url} alt={obj.label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-600">
-                                                    <Scan className="w-12 h-12 opacity-20" />
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-900/50">
+                                                    {generatingAssets[obj.id] ? (
+                                                        <>
+                                                           <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-2" />
+                                                           <span className="text-[10px] uppercase tracking-widest text-indigo-400 animate-pulse">Visualizing...</span>
+                                                        </>
+                                                    ) : (
+                                                        <Scan className="w-12 h-12 opacity-20" />
+                                                    )}
                                                 </div>
                                             )}
 
