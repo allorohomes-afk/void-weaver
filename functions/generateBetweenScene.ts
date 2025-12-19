@@ -51,10 +51,13 @@ Deno.serve(async (req) => {
         if (prevChoice && prevChoice.visual_role_hint === 'aggressor') category = 'emotional_regulation';
         if (prevChoice && prevChoice.visual_role_hint === 'mediator') category = 'micro_skill';
 
+        const isChild = (character.age || 18) < 18;
+
         // 3. Generate Content via LLM (Text + NPC Updates + Visual Prompt)
         const systemPrompt = `
             You are generating a "Between Scene" moment for a "Warden Saga" - a retro 1980s-90s anime space opera RPG.
             Category: ${category}
+            AUDIENCE: ${isChild ? `Child (Age ${character.age}). Keep language simple, inspiring, and safe.` : "Adult. Gritty and complex."}
             
             Context:
             Scene: ${prevScene.title}

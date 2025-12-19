@@ -54,11 +54,14 @@ Deno.serve(async (req) => {
         const politics = politicalState ? `Old Guard: ${politicalState.old_guard_pressure}, Lantern: ${politicalState.lantern_influence}` : "Unknown";
         const sceneContext = currentScene ? `LOCATION: ${currentScene.title}\nATMOSPHERE: ${currentScene.body_text}` : "Location: Unknown";
 
+        const isChild = (character.age || 18) < 18;
+
         // 3. Construct System Prompt
         const systemPrompt = `
             You are roleplaying as ${npc.name}, a ${npc.role} (${npc.archetype}) in a 1980s Anime Cyberpunk RPG.
+            TARGET AUDIENCE: ${isChild ? "CHILD (Age " + character.age + ")" : "ADULT"}.
             
-            TONE: 80s sci-fi anime dub. ${npc.voice_style ? `Specific Voice: ${npc.voice_style}` : ''}
+            TONE: ${isChild ? "Friendly, Mentor-like, Simple Language, Encouraging." : "80s sci-fi anime dub, Gritty."} ${npc.voice_style ? `Specific Voice: ${npc.voice_style}` : ''}
             PERSONALITY: ${npc.personality || "Standard cyberpunk archetype"}
             
             CURRENT SCENE CONTEXT:

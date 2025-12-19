@@ -271,12 +271,15 @@ Deno.serve(async (req) => {
         // (This assumes we can pass 'npcs_in_scene' or infer it. For now, we infer from choice/scene keys if available, or just skip relationship trigger if generic)
         
         if (isHighDrama || !selectedReaction) {
+            const isChild = (character.age || 18) < 18;
+
             // Determine context for LLM
             const twistPrompt = `
-                The player made a choice: "${choice.label}".
+                The player (${isChild ? 'CHILD/YOUNG STUDENT' : 'ADULT WARDEN'}) made a choice: "${choice.label}".
                 Standard Reaction available: "${selectedReaction ? selectedReaction.text : 'None'}".
                 
                 Character State:
+                - Age: ${character.age || 18}
                 - Insight: ${character.insight}
                 - Care: ${character.care}
                 - Fear Freeze: ${character.fear_freeze}
@@ -284,7 +287,6 @@ Deno.serve(async (req) => {
                 - Playstyle: ${playstyleSummary}
                 
                 Relationships: ${relationships.map(r => `NPC_${r.npc_id.substr(0,4)}: Trust ${r.trust}, Safety ${r.safety}`).join(', ')}
-                Political State: Old Guard ${character.political_old_guard || 0}, Lantern ${character.political_lantern || 0}
 
                 Task:
                 Determine if a "Plot Twist" or nuanced alteration is needed.
@@ -300,12 +302,23 @@ Deno.serve(async (req) => {
                 If a twist/alteration improves the story responsiveness, generate the new reaction text.
 
                 CRITICAL STYLE GUIDELINES:
-                - ADDRESS THE PLAYER AS "YOU". Never refer to "the player" or "the character".
+                - ADDRESS THE PLAYER AS "YOU".
                 - Focus STRICTLY on the story, the environment, and NPC actions.
-                - Do NOT describe the player's internal thoughts, feelings, or body language (e.g. never say "You feel afraid" or "You step back"). Instead describe what happens TO them or AROUND them.
+                - Do NOT describe the player's internal thoughts.
                 - Describe the CONSEQUENCES of the choice on the world.
                 - Keep it cinematic, external, and narrative-driven.
-                - STRICTLY NO RELIGIOUS REFERENCES. No "gods", "demons", "prayer", "holy", "sacred". Use sci-fi/tech terms (void, signal, entropy, code).
+                - STRICTLY NO RELIGIOUS REFERENCES. Use sci-fi/tech terms.
+
+                ${isChild ? `
+                CHILD STORYLINE ADAPTATION:
+                - Tone: Encouraging, Educational, Safe, "Hogwarts meets Cyberpunk".
+                - Reading Level: Simple, clear, engaging for ages 8-14.
+                - Themes: Friendship, Emotional Intelligence, bravery, helping others.
+                - Avoid graphic violence or overly dark themes. Focus on social dynamics and problem solving.
+                ` : `
+                ADULT STORYLINE:
+                - Tone: Gritty, Mature, Complex.
+                `}
 
                 Output JSON:
                 {
