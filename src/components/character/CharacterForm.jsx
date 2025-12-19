@@ -22,7 +22,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     eye_color: initialData?.eye_color || '',
     gender_presentation: initialData?.gender_presentation || '',
     age_range: initialData?.age_range || '',
-    age: initialData?.age || 18,
+    age: initialData?.age || '', // Start empty if no initial data to allow typing freely
     face_vibe: initialData?.face_vibe || '',
     outfit_style: initialData?.outfit_style || 'streetops',
     reference_photo_url: initialData?.reference_photo_url || ''
@@ -148,6 +148,10 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
         toast.error("Character name is required");
         return;
     }
+    if (!formData.age) {
+        toast.error("Please enter a valid age");
+        return;
+    }
 
     // First generate portrait if not already done
     let portraitUrl = generatedPortrait;
@@ -171,7 +175,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
   };
 
   const isFormValid = formData.name && formData.skin_tone && formData.body_type_primary && 
-                     formData.hair_color && formData.age_range && formData.face_vibe;
+                     formData.hair_color && formData.age && formData.face_vibe;
 
   return (
     <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 max-h-[80vh] overflow-y-auto flex flex-col">
@@ -221,9 +225,16 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                   type="number"
                   min="5"
                   max="120"
-                  placeholder="18"
+                  placeholder="e.g. 18"
                   value={formData.age}
-                  onChange={(e) => setFormData({...formData, age: parseInt(e.target.value) || 18, age_range: `${e.target.value} years old`})}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData({
+                        ...formData, 
+                        age: val === '' ? '' : parseInt(val), 
+                        age_range: val ? `${val} years old` : ''
+                    });
+                  }}
                   className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
