@@ -22,6 +22,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     eye_color: initialData?.eye_color || '',
     gender_presentation: initialData?.gender_presentation || '',
     age_range: initialData?.age_range || '',
+    age: initialData?.age || 18,
     face_vibe: initialData?.face_vibe || '',
     outfit_style: initialData?.outfit_style || 'streetops',
     reference_photo_url: initialData?.reference_photo_url || ''
@@ -79,7 +80,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     
     const uniformDesc = uniformDescriptions[data.outfit_style];
 
-    return `A cinematic portrait of a Void Weaver with ${data.skin_tone} skin, ${data.eye_color ? `${data.eye_color} eyes, ` : ''}${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
+    return `A cinematic portrait of a Void Weaver with ${data.skin_tone} skin, ${data.eye_color ? `${data.eye_color} eyes, ` : ''}${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, age ${data.age || data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
   };
 
   const handleFileUpload = async (e) => {
@@ -214,12 +215,15 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="age" className="text-slate-300">Age Range</Label>
+                <Label htmlFor="age" className="text-slate-300">Age (Years)</Label>
                 <Input
                   id="age"
-                  placeholder="e.g. late 20s, mid 40s"
-                  value={formData.age_range}
-                  onChange={(e) => setFormData({...formData, age_range: e.target.value})}
+                  type="number"
+                  min="5"
+                  max="120"
+                  placeholder="18"
+                  value={formData.age}
+                  onChange={(e) => setFormData({...formData, age: parseInt(e.target.value) || 18, age_range: `${e.target.value} years old`})}
                   className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>

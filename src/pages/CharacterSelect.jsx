@@ -35,11 +35,23 @@ export default function CharacterSelect() {
 
   const createCharacterMutation = useMutation({
     mutationFn: async (characterData) => {
-      // Fetch default start scene
       let startSceneId = null;
+      const isChild = (characterData.age || 18) < 18;
+
       try {
-        const scenes = await base44.entities.Scene.filter({ key: 'first_watch_start' });
-        if (scenes.length > 0) startSceneId = scenes[0].id;
+        if (isChild) {
+            // Seed/Ensure child content exists and get start scene
+            const seedRes = await base44.functions.invoke('seedChildStoryline');
+            if (seedRes.data && seedRes.data.start_scene_id) {
+                startSceneId = seedRes.data.start_scene_id;
+            }
+        } 
+        
+        if (!startSceneId) {
+            // Fallback to main storyline or if seed failed
+            const scenes = await base44.entities.Scene.filter({ key: isChild ? 'young_guardians_intro' : 'first_watch_start' });
+            if (scenes.length > 0) startSceneId = scenes[0].id;
+        }
       } catch (e) {
         console.error("Failed to fetch start scene", e);
       }
