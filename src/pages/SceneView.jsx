@@ -33,6 +33,8 @@ export default function SceneView() {
   const [showLoreMaster, setShowLoreMaster] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [interactingObjectId, setInteractingObjectId] = useState(null);
+  const [tacticalAnalysis, setTacticalAnalysis] = useState(null);
+  const [isAnalyzingTactics, setIsAnalyzingTactics] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -215,6 +217,27 @@ export default function SceneView() {
           toast.error("Interaction failed.");
       } finally {
           setInteractingObjectId(null);
+      }
+  };
+
+  const handleTacticalAnalysis = async () => {
+      setIsAnalyzingTactics(true);
+      try {
+          const res = await base44.functions.invoke('analyzeTactics', { 
+              scene_id: currentScene.id,
+              character_id: character.id 
+          });
+          if (res.data.assessment) {
+              setTacticalAnalysis(res.data.assessment);
+              toast.success("Tactical Analysis Complete", {
+                  icon: <Brain className="w-4 h-4 text-cyan-400" />
+              });
+          }
+      } catch (err) {
+          console.error("Tactical analysis failed", err);
+          toast.error("Tactical systems unavailable.");
+      } finally {
+          setIsAnalyzingTactics(false);
       }
   };
 
@@ -685,29 +708,38 @@ export default function SceneView() {
             </div>
             )}
 
-            {/* Interactive Environment Section */}
+            {/* Tactical & Environment Section */}
             {!reactionNode && !currentScene.is_terminal && (
-                <div className="mb-6">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-widest flex items-center">
-                            <Scan className="w-4 h-4 mr-2" /> Environment Scan
-                        </h3>
-                        {interactables.length === 0 && (
-                            <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={handleScanEnvironment}
-                                disabled={isScanning}
-                                className="h-6 text-xs text-indigo-400 hover:text-indigo-200"
-                            >
-                                {isScanning ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Scan className="w-3 h-3 mr-1" />}
-                                {isScanning ? 'Scanning...' : 'Scan Area'}
-                            </Button>
-                        )}
+                <div className="mb-6 space-y-4">
+                    {/* Tools Header */}
+                    <div className="flex items-center gap-3">
+                        <Button
+                           size="sm"
+                           variant="outline"
+                           onClick={handleScanEnvironment}
+                           disabled={isScanning}
+                           className={`border-indigo-500/30 ${interactables.length > 0 ? 'bg-indigo-900/20 text-indigo-200' : 'text-slate-400'}`}
+                        >
+                           {isScanning ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Scan className="w-3 h-3 mr-2" />}
+                           {interactables.length > 0 ? 'Rescan Environment' : 'Scan Environment'}
+                        </Button>
+
+                        <Button
+                           size="sm"
+                           variant="outline"
+                           onClick={handleTacticalAnalysis}
+                           disabled={isAnalyzingTactics}
+                           className={`border-cyan-500/30 ${tacticalAnalysis ? 'bg-cyan-900/20 text-cyan-200' : 'text-slate-400'}`}
+                        >
+                           {isAnalyzingTactics ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Brain className="w-3 h-3 mr-2" />}
+                           Tactical Analysis
+                        </Button>
                     </div>
 
+                    {/* Interactables Grid */}
                     {interactables.length > 0 && (
-                        <div className="flex flex-wrap gap-3 p-4 bg-slate-900/40 rounded-lg border border-indigo-500/20">
+                        <div className="flex flex-wrap gap-3 p-4 bg-slate-900/40 rounded-lg border border-indigo-500/20 animate-in fade-in zoom-in-95">
+                            <h4 className="w-full text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Interactive Elements</h4>
                             {interactables.map(obj => (
                                 <Button
                                     key={obj.id}
@@ -728,16 +760,34 @@ export default function SceneView() {
                                     </span>
                                 </Button>
                             ))}
-                            <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                onClick={handleScanEnvironment}
-                                disabled={isScanning}
-                                className="h-9 w-9 text-slate-500 hover:text-indigo-400"
-                                title="Rescan Area"
-                            >
-                                {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scan className="w-4 h-4" />}
-                            </Button>
+                        </div>
+                    )}
+
+                    {/* Tactical Analysis Output */}
+                    {tacticalAnalysis && (
+                        <div className="p-4 bg-cyan-950/30 rounded-lg border border-cyan-500/30 animate-in slide-in-from-top-2">
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest flex items-center">
+                                    <Brain className="w-3 h-3 mr-2" /> Tactical Assessment
+                                </h4>
+                                <Button 
+                                   size="icon" 
+                                   variant="ghost" 
+                                   className="h-5 w-5 text-cyan-600 hover:text-cyan-400"
+                                   onClick={() => setTacticalAnalysis(null)}
+                                >
+                                   <span className="sr-only">Close</span>
+                                   ×
+                                </Button>
+                            </div>
+                            <ul className="space-y-2">
+                                {tacticalAnalysis.map((tip, idx) => (
+                                    <li key={idx} className="flex items-start gap-2 text-sm text-cyan-100/90">
+                                        <span className="mt-1.5 w-1 h-1 bg-cyan-500 rounded-full shrink-0" />
+                                        <span>{tip}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     )}
                 </div>

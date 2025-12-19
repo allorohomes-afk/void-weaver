@@ -309,6 +309,13 @@ Deno.serve(async (req) => {
                 - Keep it cinematic, external, and narrative-driven.
                 - STRICTLY NO RELIGIOUS REFERENCES. Use sci-fi/tech terms.
 
+                COMBAT & CONFLICT PHILOSOPHY (CRITICAL):
+                - We are NOT a hack-and-slash game. We value CRITICAL THINKING and EMOTIONAL INTELLIGENCE.
+                - If the player chooses violence/aggression without high Insight or justification: Show it as messy, chaotic, and traumatizing. Highlight the failure of imagination.
+                - If the player chooses creative, non-lethal, or de-escalation tactics: Describe them as precise, effective, and "higher level" mastery.
+                - Combat should feel like a high-stakes puzzle, not a meat grinder.
+                - Highlight consequences: Broken trust, collateral damage, noise attracting more threats.
+
                 ${isChild ? `
                 CHILD STORYLINE ADAPTATION:
                 - Tone: Encouraging, Educational, Safe, "Hogwarts meets Cyberpunk".
