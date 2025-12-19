@@ -25,11 +25,13 @@ export default async function handler(req) {
             Title: "${scene.title}"
             Description: "${scene.body_text}"
 
-            Identify 3-4 specific, interesting objects or features the player could interact with.
-            Types: 'examine' (look closer), 'interact' (use/touch), 'hack' (terminals/tech), 'loot' (search for items).
+            Identify 2-3 specific, meaningful objects or features.
+            PHILOSOPHY: We do not use "Loot". We use "Recover" or "Salvage". Items should test the player's values (e.g. recovering data vs respecting privacy).
+            Types: 'examine' (investigate), 'interact' (use/operate), 'connect' (tech/terminals), 'recover' (take with purpose).
             
-            Return ONLY a JSON array of objects with keys: "label", "type", "description".
-            Example: [{"label": "Broken Datapad", "type": "hack", "description": "A cracked screen flickering with code"}, {"label": "Strange Moss", "type": "examine", "description": "Glowing fungal growth"}]
+            Return ONLY a JSON array of objects with keys: "label", "type", "description", "visual_prompt".
+            "visual_prompt": A description to generate a 2D sci-fi RPG asset image of this object. Retro anime style.
+            Example: [{"label": "Private Log", "type": "connect", "description": "A personal diary left open.", "visual_prompt": "A glowing holographic diary on a metal table, retro anime style, isometric"}]
         `;
 
         const response = await base44.integrations.Core.InvokeLLM({
@@ -43,25 +45,41 @@ export default async function handler(req) {
                             type: "object",
                             properties: {
                                 label: { type: "string" },
-                                type: { type: "string", enum: ["examine", "interact", "hack", "loot"] },
-                                description: { type: "string" }
+                                type: { type: "string", enum: ["examine", "interact", "connect", "recover"] },
+                                description: { type: "string" },
+                                visual_prompt: { type: "string" }
                             },
-                            required: ["label", "type", "description"]
+                            required: ["label", "type", "description", "visual_prompt"]
                         }
                     }
                 }
             }
         });
 
-        // 4. Save to DB
+        // 4. Generate Images & Save
         const newInteractables = [];
         if (response.interactables && Array.isArray(response.interactables)) {
+            // Process sequentially to avoid rate limits or handle gracefully
             for (const item of response.interactables) {
+                let imageUrl = null;
+                try {
+                    // Quick generation for asset
+                    const imgRes = await base44.functions.invoke('generateLeonardoImage', {
+                        prompt: item.visual_prompt + ", isolated on dark background, high quality game asset, 2d sprite style",
+                        width: 512,
+                        height: 512
+                    });
+                    if (imgRes.data.url) imageUrl = imgRes.data.url;
+                } catch (e) {
+                    console.error("Failed to gen image for item", item.label, e);
+                }
+
                 const created = await base44.entities.SceneInteractable.create({
                     scene_id: scene.id,
                     label: item.label,
                     type: item.type,
                     description: item.description,
+                    image_url: imageUrl,
                     status: 'active'
                 });
                 newInteractables.push(created);

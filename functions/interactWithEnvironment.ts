@@ -29,19 +29,19 @@ export default async function handler(req) {
         // 2. Determine Outcome via LLM
         const prompt = `
             Roleplay Interaction:
-            Character: ${character.name} (Insight: ${character.insight}, Care: ${character.care}, Tech Skill: ${character.skill_tech || 'average'})
+            Character: ${character.name} (Insight: ${character.insight}, Care: ${character.care})
             Scene: ${scene ? scene.title : 'Unknown Location'}
             Object: ${object.label} (${object.description})
             Action: ${object.type.toUpperCase()}
 
-            Write a short paragraph describing what happens. 
-            - If it's a 'hack' and they have low Insight, maybe they fail.
-            - If 'loot', maybe they find something small.
-            - If 'examine', reveal a detail.
+            GOAL: Teach Self-Accountability and Intent vs. Impact.
             
-            Keep it strictly narrative. 2-3 sentences.
-            
-            Also return a 'result_type': 'info', 'item', 'damage', 'nothing'.
+            1. Narrate the outcome (2-3 sentences).
+            2. Explicitly highlight the difference between Intent (what they wanted) and Impact (what happened to the world/others).
+            3. If the action was selfish or destructive ("recover" something not theirs), show the Community Impact (e.g., someone needed that).
+            4. If the action was thoughtful, show the support.
+
+            Also return a 'result_type' and 'community_impact' (-1, 0, 1).
         `;
 
         const llmRes = await base44.integrations.Core.InvokeLLM({
@@ -50,14 +50,27 @@ export default async function handler(req) {
                 type: "object",
                 properties: {
                     narrative: { type: "string" },
-                    result_type: { type: "string", enum: ["info", "item", "damage", "nothing"] }
+                    intent_vs_impact_lesson: { type: "string", description: "Short takeaway about the impact of this choice." },
+                    result_type: { type: "string", enum: ["info", "item", "damage", "nothing"] },
+                    community_impact: { type: "integer", description: "-1 for negative, 1 for positive, 0 for neutral" }
                 },
-                required: ["narrative"]
+                required: ["narrative", "intent_vs_impact_lesson"]
             }
         });
 
-        // 3. Mark as exhausted if it's a loot/hack action that shouldn't be repeated
-        if (['loot', 'hack'].includes(object.type)) {
+        // 3. Update Community Sentiment
+        if (llmRes.community_impact !== 0) {
+             const polStates = await base44.entities.PoliticalState.filter({ character_id: character.id });
+             if (polStates.length > 0) {
+                 const currentSentiment = polStates[0].public_sentiment || 0;
+                 await base44.entities.PoliticalState.update(polStates[0].id, {
+                     public_sentiment: currentSentiment + llmRes.community_impact
+                 });
+             }
+        }
+
+        // 4. Mark as exhausted if it's a single-use action
+        if (['recover', 'connect', 'hack', 'loot'].includes(object.type)) {
             await base44.entities.SceneInteractable.update(object.id, { status: 'exhausted' });
         }
 

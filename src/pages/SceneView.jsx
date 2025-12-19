@@ -203,13 +203,24 @@ export default function SceneView() {
           
           if (res.data.error) throw new Error(res.data.error);
 
-          const { narrative, result_type } = res.data;
+          const { narrative, intent_vs_impact_lesson, community_impact } = res.data;
           
-          toast(object.label, {
-              description: narrative,
-              duration: 6000,
-              icon: result_type === 'item' ? <CheckCircle className="text-emerald-400" /> : <Search className="text-indigo-400" />
-          });
+          // Custom Toast for Lesson
+          toast(
+              <div className="space-y-2">
+                  <p className="font-medium text-sm">{narrative}</p>
+                  {intent_vs_impact_lesson && (
+                      <div className={`text-xs p-2 rounded border-l-2 ${community_impact < 0 ? 'bg-amber-950/30 border-amber-500 text-amber-200' : 'bg-indigo-950/30 border-indigo-500 text-indigo-200'}`}>
+                          <strong className="block uppercase tracking-wider text-[10px] opacity-70 mb-0.5">Impact Analysis</strong>
+                          {intent_vs_impact_lesson}
+                      </div>
+                  )}
+              </div>, 
+              {
+                  duration: 8000,
+                  icon: community_impact < 0 ? <AlertCircle className="text-amber-500" /> : <CheckCircle className="text-emerald-500" />
+              }
+          );
           
           refetchInteractables();
       } catch (err) {
@@ -736,30 +747,46 @@ export default function SceneView() {
                         </Button>
                     </div>
 
-                    {/* Interactables Grid */}
+                    {/* Interactables Grid (Visual) */}
                     {interactables.length > 0 && (
-                        <div className="flex flex-wrap gap-3 p-4 bg-slate-900/40 rounded-lg border border-indigo-500/20 animate-in fade-in zoom-in-95">
-                            <h4 className="w-full text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Interactive Elements</h4>
-                            {interactables.map(obj => (
-                                <Button
-                                    key={obj.id}
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() => handleInteract(obj)}
-                                    disabled={interactingObjectId === obj.id}
-                                    className="bg-slate-800 hover:bg-indigo-900/50 border border-slate-700 hover:border-indigo-500/50 text-slate-300"
-                                >
-                                    {interactingObjectId === obj.id ? (
-                                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                                    ) : (
-                                        <MousePointer2 className="w-3 h-3 mr-2 text-indigo-400" />
-                                    )}
-                                    {obj.label}
-                                    <span className="ml-2 text-[10px] uppercase bg-slate-950 px-1 rounded text-slate-500">
-                                        {obj.type}
-                                    </span>
-                                </Button>
-                            ))}
+                        <div className="space-y-2 animate-in fade-in zoom-in-95">
+                            <h4 className="w-full text-xs font-bold text-indigo-400 uppercase tracking-widest pl-1">Interactive Environment</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {interactables.map(obj => (
+                                    <div 
+                                       key={obj.id} 
+                                       className="group relative bg-slate-800/80 rounded-lg border border-slate-700 overflow-hidden hover:border-indigo-500/50 transition-all cursor-pointer shadow-lg hover:shadow-indigo-500/10"
+                                       onClick={() => !interactingObjectId && handleInteract(obj)}
+                                    >
+                                        <div className="aspect-square w-full bg-slate-900 relative">
+                                            {obj.image_url ? (
+                                                <img src={obj.image_url} alt={obj.label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-600">
+                                                    <Scan className="w-12 h-12 opacity-20" />
+                                                </div>
+                                            )}
+
+                                            {/* Hover Overlay */}
+                                            <div className="absolute inset-0 bg-indigo-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                                {interactingObjectId === obj.id ? (
+                                                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                                ) : (
+                                                    <div className="flex flex-col items-center">
+                                                        <MousePointer2 className="w-8 h-8 text-white mb-2" />
+                                                        <span className="text-white font-bold text-sm uppercase tracking-wider">{obj.type}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="p-3 bg-slate-900/90 border-t border-slate-800">
+                                            <h5 className="font-bold text-slate-200 text-sm truncate">{obj.label}</h5>
+                                            <p className="text-[10px] text-slate-400 line-clamp-2 mt-1 leading-tight">{obj.description}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
