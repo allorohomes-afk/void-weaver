@@ -70,6 +70,7 @@ Deno.serve(async (req) => {
             NPC PROFILE:
             Role: ${npc.role}
             Archetype: ${npc.archetype}
+            Emotional State: ${npc.emotional_state || 'Neutral'}
             ${archetypeData ? `
             ARCHETYPE TRAITS (${archetypeData.name}):
             - Behaviors: ${archetypeData.behavioral_traits ? archetypeData.behavioral_traits.join(', ') : 'None'}
@@ -84,6 +85,7 @@ Deno.serve(async (req) => {
             
             PLAYER CHARACTER STATS & DESCRIPTION:
             ${charStats}
+            Current Emotional State: ${character.emotional_state || 'Neutral'}
             Visuals: ${character.character_visual_prompt || "Standard uniform"}
             Hair: ${character.hair_length || "average"}. (If "bald" or "shaved", the player has NO hair).
             
@@ -109,14 +111,16 @@ Deno.serve(async (req) => {
             - Reference past memories if relevant.
             - If the player demonstrates a specific skill through their words or approach (e.g. empathy -> relational, logic -> critical_thought), AWARD XP.
             - If Trust is high or the conversation warrants it, you may OFFER A QUEST (a favor, investigation, or mission).
+            - SUGGEST DIALOGUE CHOICES that foster EMPATHY and SELF-REFLECTION if the context allows. Help the player explore emotional depth.
             
             OUTPUT JSON:
             {
                 "dialogue": "The NPC's spoken line.",
                 "inner_thought": "Short internal monologue showing their true feeling (optional).",
                 "mood": "neutral" | "angry" | "happy" | "fearful" | "suspicious" | "tender",
+                "new_npc_emotional_state": "Neutral" | "Vulnerable" | "Resilient" | "Empathetic" | "Guarded" | "Volatile" | "Hopeful" | "Despondent",
                 "choices": [
-                    { "label": "Player response option 1", "tone": "agressive/empathetic/analytical" },
+                    { "label": "Player response option 1", "tone": "aggressive/empathetic/analytical" },
                     { "label": "Player response option 2", "tone": "..." }
                 ],
                 "memory_update": { "type": "respect/fear/etc", "notes": "Short summary" } (optional),
@@ -149,6 +153,7 @@ Deno.serve(async (req) => {
                             required: ["label"]
                         } 
                     },
+                    new_npc_emotional_state: { type: "string", enum: ["Neutral", "Vulnerable", "Resilient", "Empathetic", "Guarded", "Volatile", "Hopeful", "Despondent"] },
                     memory_update: {
                         type: "object",
                         properties: {
@@ -173,7 +178,12 @@ Deno.serve(async (req) => {
             }
         });
 
-        // 5. Handle Memory Update (Side Effect)
+        // 5. Update NPC Emotional State
+        if (llmRes.new_npc_emotional_state) {
+            await base44.entities.NPC.update(npc.id, { emotional_state: llmRes.new_npc_emotional_state });
+        }
+
+        // 6. Handle Memory Update (Side Effect)
         if (llmRes.memory_update) {
             await base44.entities.NPCMemory.create({
                 npc_id: npc.id,

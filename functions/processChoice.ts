@@ -284,6 +284,7 @@ Deno.serve(async (req) => {
                 - Care: ${character.care}
                 - Fear Freeze: ${character.fear_freeze}
                 - Energy Balance: ${character.masculine_energy}/${character.feminine_energy} (M/F)
+                - Emotional State: ${character.emotional_state || 'Neutral'}
                 - Playstyle: ${playstyleSummary}
                 
                 Relationships: ${relationships.map(r => `NPC_${r.npc_id.substr(0,4)}: Trust ${r.trust}, Safety ${r.safety}`).join(', ')}
@@ -331,7 +332,8 @@ Deno.serve(async (req) => {
                 {
                     "action": "KEEP" or "TWIST",
                     "text": "New reaction text if TWIST",
-                    "tone": "tense" | "soft" | "ominous" | "hopeful"
+                    "tone": "tense" | "soft" | "ominous" | "hopeful",
+                    "new_emotional_state": "Neutral" | "Vulnerable" | "Resilient" | "Empathetic" | "Guarded" | "Volatile" | "Hopeful" | "Despondent"
                 }
             `;
 
@@ -343,11 +345,17 @@ Deno.serve(async (req) => {
                         properties: {
                             action: { type: "string", enum: ["KEEP", "TWIST"] },
                             text: { type: "string" },
-                            tone: { type: "string" }
+                            tone: { type: "string" },
+                            new_emotional_state: { type: "string", enum: ["Neutral", "Vulnerable", "Resilient", "Empathetic", "Guarded", "Volatile", "Hopeful", "Despondent"] }
                         },
                         required: ["action"]
                     }
                 });
+
+                // Update Character Emotional State
+                if (llmRes.new_emotional_state && llmRes.new_emotional_state !== character.emotional_state) {
+                    await base44.entities.Character.update(character.id, { emotional_state: llmRes.new_emotional_state });
+                }
 
                 if (llmRes.action === 'TWIST' && llmRes.text) {
                     generatedReactionText = llmRes.text;

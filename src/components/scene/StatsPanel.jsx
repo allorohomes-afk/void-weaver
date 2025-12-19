@@ -16,11 +16,33 @@ export default function StatsPanel({ character }) {
     { label: 'Relational Energy', value: character.feminine_energy, icon: Moon, color: 'from-indigo-500 to-purple-500' }
   ];
 
+  const getEmotionColor = (state) => {
+      switch(state) {
+          case 'Vulnerable': return 'text-amber-400';
+          case 'Resilient': return 'text-emerald-400';
+          case 'Empathetic': return 'text-pink-400';
+          case 'Guarded': return 'text-slate-400';
+          case 'Volatile': return 'text-red-400';
+          case 'Hopeful': return 'text-cyan-400';
+          case 'Despondent': return 'text-indigo-400';
+          default: return 'text-slate-300';
+      }
+  };
+
   return (
     <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
       <CardHeader className="border-b border-slate-700">
-        <CardTitle className="text-white text-lg">{character.name}</CardTitle>
-        <p className="text-slate-400 text-sm">{character.pronouns}</p>
+        <div className="flex justify-between items-start">
+            <div>
+                <CardTitle className="text-white text-lg">{character.name}</CardTitle>
+                <p className="text-slate-400 text-sm">{character.pronouns}</p>
+            </div>
+            {character.emotional_state && (
+                <div className={`px-2 py-1 rounded border border-slate-600 bg-slate-900/50 text-xs font-bold uppercase tracking-wider ${getEmotionColor(character.emotional_state)}`}>
+                    {character.emotional_state}
+                </div>
+            )}
+        </div>
       </CardHeader>
       <CardContent className="p-4 space-y-6">
         {/* Core Stats */}
