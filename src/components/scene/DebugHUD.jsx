@@ -306,6 +306,20 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
 
                       <Button 
                           onClick={async () => {
+                              toast.promise(base44.functions.invoke('seedMission6'), {
+                                  loading: 'Seeding Mission 6...',
+                                  success: 'Mission 6 Content Created!',
+                                  error: 'Failed to seed Mission 6'
+                              });
+                          }}
+                          variant="outline"
+                          className="w-full border-indigo-900/50 text-indigo-400 hover:bg-indigo-950/30 text-xs mb-2"
+                      >
+                          Seed Mission 6: The Spire
+                      </Button>
+
+                      <Button 
+                          onClick={async () => {
                               toast.promise(base44.functions.invoke('seedMicroScripts'), {
                                   loading: 'Seeding Micro-Skills...',
                                   success: 'Micro-Skills Database Updated',
