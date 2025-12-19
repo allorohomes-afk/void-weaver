@@ -95,6 +95,11 @@ Deno.serve(async (req) => {
              prompt += `\nVisual Description: ${character.character_visual_prompt}`;
         }
 
+        let negativePrompt = undefined;
+        if (isBald) {
+            negativePrompt = "hair, long hair, messy hair, wig, bangs, beard (unless specified)";
+        }
+
         // 2.5 Fetch Additional Reference Images
         let refUrls = [];
         if (portraitUrl) refUrls.push(portraitUrl);
@@ -134,6 +139,7 @@ Deno.serve(async (req) => {
              // Let's use the standard Leonardo call but pass ALL refs.
              const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
                 prompt,
+                negative_prompt: negativePrompt,
                 width: 1280, 
                 height: 720,
                 character_ref_urls: refUrls, // Pass ALL references

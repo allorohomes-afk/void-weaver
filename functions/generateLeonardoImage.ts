@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
         // Using DreamShaper v7 for reliability if Phoenix/Alchemy is causing issues
         const payload = {
             prompt: prompt,
+            negative_prompt: negative_prompt,
             width: width,
             height: height,
             num_images: 1,
