@@ -8,7 +8,7 @@ import WorldContextPanel from '../components/scene/WorldContextPanel';
 import QuestLog from '../components/scene/QuestLog';
 import ChoiceButton from '../components/scene/ChoiceButton';
 import ConversationInterface from '../components/scene/ConversationInterface';
-import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle, Search, Eye, Brain } from 'lucide-react';
+import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle, Search, Eye, Brain, Scan, MousePointer2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 import { prepareSceneCinematic } from '@/components/cinematicWorkflow';
@@ -31,6 +31,8 @@ export default function SceneView() {
   const [isGeneratingBSL, setIsGeneratingBSL] = useState(false);
   const [activeConversationNPC, setActiveConversationNPC] = useState(null);
   const [showLoreMaster, setShowLoreMaster] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [interactingObjectId, setInteractingObjectId] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -158,6 +160,63 @@ export default function SceneView() {
     },
     enabled: !!characterId
   });
+
+  const { data: interactables = [], refetch: refetchInteractables } = useQuery({
+    queryKey: ['interactables', currentScene?.id],
+    queryFn: async () => {
+        if (!currentScene?.id) return [];
+        // Try fetching active interactables
+        const items = await base44.entities.SceneInteractable.filter({ scene_id: currentScene.id, status: 'active' });
+        return items;
+    },
+    enabled: !!currentScene?.id
+  });
+
+  const handleScanEnvironment = async () => {
+      setIsScanning(true);
+      try {
+          const res = await base44.functions.invoke('scanForInteractables', { scene_id: currentScene.id });
+          if (res.data.error) throw new Error(res.data.error);
+          refetchInteractables();
+          if (res.data.interactables && res.data.interactables.length > 0) {
+              toast.success(`Scan Complete: Found ${res.data.interactables.length} interactive elements.`);
+          } else {
+              toast.info("Scan Complete: No significant features found.");
+          }
+      } catch (err) {
+          console.error("Scan failed", err);
+          toast.error("Scanner malfunction.");
+      } finally {
+          setIsScanning(false);
+      }
+  };
+
+  const handleInteract = async (object) => {
+      setInteractingObjectId(object.id);
+      try {
+          const res = await base44.functions.invoke('interactWithEnvironment', { 
+              interactable_id: object.id,
+              character_id: character.id 
+          });
+          
+          if (res.data.error) throw new Error(res.data.error);
+
+          const { narrative, result_type } = res.data;
+          
+          toast(object.label, {
+              description: narrative,
+              duration: 6000,
+              icon: result_type === 'item' ? <CheckCircle className="text-emerald-400" /> : <Search className="text-indigo-400" />
+          });
+          
+          refetchInteractables();
+      } catch (err) {
+          console.error("Interaction failed", err);
+          toast.error("Interaction failed.");
+      } finally {
+          setInteractingObjectId(null);
+      }
+  };
 
   const handleAnalyzeClue = async (clue) => {
     setAnalyzingClueId(clue.id);
@@ -626,12 +685,70 @@ export default function SceneView() {
             </div>
             )}
 
+            {/* Interactive Environment Section */}
+            {!reactionNode && !currentScene.is_terminal && (
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-widest flex items-center">
+                            <Scan className="w-4 h-4 mr-2" /> Environment Scan
+                        </h3>
+                        {interactables.length === 0 && (
+                            <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={handleScanEnvironment}
+                                disabled={isScanning}
+                                className="h-6 text-xs text-indigo-400 hover:text-indigo-200"
+                            >
+                                {isScanning ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Scan className="w-3 h-3 mr-1" />}
+                                {isScanning ? 'Scanning...' : 'Scan Area'}
+                            </Button>
+                        )}
+                    </div>
+
+                    {interactables.length > 0 && (
+                        <div className="flex flex-wrap gap-3 p-4 bg-slate-900/40 rounded-lg border border-indigo-500/20">
+                            {interactables.map(obj => (
+                                <Button
+                                    key={obj.id}
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => handleInteract(obj)}
+                                    disabled={interactingObjectId === obj.id}
+                                    className="bg-slate-800 hover:bg-indigo-900/50 border border-slate-700 hover:border-indigo-500/50 text-slate-300"
+                                >
+                                    {interactingObjectId === obj.id ? (
+                                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                                    ) : (
+                                        <MousePointer2 className="w-3 h-3 mr-2 text-indigo-400" />
+                                    )}
+                                    {obj.label}
+                                    <span className="ml-2 text-[10px] uppercase bg-slate-950 px-1 rounded text-slate-500">
+                                        {obj.type}
+                                    </span>
+                                </Button>
+                            ))}
+                            <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                onClick={handleScanEnvironment}
+                                disabled={isScanning}
+                                className="h-9 w-9 text-slate-500 hover:text-indigo-400"
+                                title="Rescan Area"
+                            >
+                                {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scan className="w-4 h-4" />}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Investigation Section */}
             {!reactionNode && !currentScene.is_terminal && clues.length > 0 && (
-               <div className="bg-slate-900/50 rounded-lg p-4 border border-indigo-500/30 mb-6">
-                  <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-widest mb-3 flex items-center">
-                     <Search className="w-4 h-4 mr-2" /> Investigation
-                  </h3>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-indigo-500/30 mb-6">
+                 <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-widest mb-3 flex items-center">
+                    <Search className="w-4 h-4 mr-2" /> Investigation
+                 </h3>
                   <div className="space-y-2">
                      {clues.map(clue => {
                         // Filter logic: If clue requires a skill, only show if player has it unlocked?
