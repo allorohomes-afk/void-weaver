@@ -383,20 +383,20 @@ export default function SceneView() {
          setIsGeneratingBSL(false);
       }
 
-      // SPECIAL LOGIC: Routing to Chapter End based on Balance
+      // SPECIAL LOGIC: Routing to Chapter End via Backend Calculation
       if (choice.label === "Reflect on your path") {
-        const { masculine_energy = 50, feminine_energy = 50 } = character;
-        const diff = masculine_energy - feminine_energy;
-        
-        let targetSceneKey = 'chapter_end_balanced';
-        if (diff >= 15) targetSceneKey = 'chapter_end_shadow_masculine';
-        else if (diff <= -15) targetSceneKey = 'chapter_end_shadow_feminine';
-        else targetSceneKey = 'chapter_end_balanced';
-
-        const targetScenes = await base44.entities.Scene.filter({ key: targetSceneKey });
-        if (targetScenes.length > 0) {
-          nextSceneId = targetScenes[0].id;
-        }
+          try {
+              const result = await base44.functions.invoke('concludeChapter', { character_id: character.id });
+              if (result.data.next_scene_id) {
+                  nextSceneId = result.data.next_scene_id;
+                  // Optional: Toast for the transition context
+                  // toast("The path settles beneath your feet...");
+              }
+          } catch (err) {
+              console.error("Failed to conclude chapter:", err);
+              toast.error("The Void blocks your reflection.");
+              return; // Stop processing if this critical step fails
+          }
       }
 
       if (reactionToDisplay) {
