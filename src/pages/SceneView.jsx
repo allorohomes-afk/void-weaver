@@ -35,6 +35,7 @@ export default function SceneView() {
   const [interactingObjectId, setInteractingObjectId] = useState(null);
   const [tacticalAnalysis, setTacticalAnalysis] = useState(null);
   const [isAnalyzingTactics, setIsAnalyzingTactics] = useState(false);
+  const [isProcessingMicroChoice, setIsProcessingMicroChoice] = useState(false);
   const [generatingAssets, setGeneratingAssets] = useState({});
   const queryClient = useQueryClient();
 
@@ -466,21 +467,30 @@ export default function SceneView() {
   };
 
   const handleMicroChoice = async (microChoice) => {
-      if (microChoice.effect_script_id) {
-          const scripts = await base44.entities.EffectScript.filter({ id: microChoice.effect_script_id });
-          if (scripts.length > 0) {
-              const effects = scripts[0].effect_json;
-              if (effects.stats) {
-                  const updates = {};
-                  Object.keys(effects.stats).forEach(stat => {
-                      updates[stat] = (character[stat] || 0) + effects.stats[stat];
-                  });
-                  await base44.entities.Character.update(character.id, updates);
+      setIsProcessingMicroChoice(true);
+      try {
+          if (microChoice.effect_script_id) {
+              const scripts = await base44.entities.EffectScript.filter({ id: microChoice.effect_script_id });
+              if (scripts.length > 0) {
+                  const effects = scripts[0].effect_json;
+                  if (effects.stats) {
+                      const updates = {};
+                      Object.keys(effects.stats).forEach(stat => {
+                          updates[stat] = (character[stat] || 0) + effects.stats[stat];
+                      });
+                      await base44.entities.Character.update(character.id, updates);
+                      toast.success("Insight internalized", { icon: <Brain className="w-4 h-4 text-emerald-400"/> });
+                  }
               }
           }
+      } catch (err) {
+          console.error("Micro choice failed", err);
+          toast.error("Effect failed to process, but moving forward.");
+      } finally {
+          // Proceed after micro choice regardless of success
+          await completeTransition();
+          setIsProcessingMicroChoice(false);
       }
-      // Proceed after micro choice
-      completeTransition();
   };
 
   const completeTransition = async () => {
@@ -662,7 +672,8 @@ export default function SceneView() {
                                 <Button
                                     key={mc.id}
                                     onClick={() => handleMicroChoice(mc)}
-                                    className="justify-start h-auto py-3 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-400 text-slate-200 transition-all text-left"
+                                    disabled={isProcessingMicroChoice}
+                                    className="justify-start h-auto py-3 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-400 text-slate-200 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <div className="flex flex-col items-start">
                                         <span className="font-medium">{mc.label}</span>
