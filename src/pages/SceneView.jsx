@@ -14,11 +14,16 @@ import { toast } from "sonner";
 import { prepareSceneCinematic } from '@/components/cinematicWorkflow';
 import DebugHUD from '@/components/scene/DebugHUD';
 import LoreMasterPanel from '@/components/scene/LoreMasterPanel';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Network, Book } from 'lucide-react';
+import JournalInterface from '@/components/journal/JournalInterface';
+import FactionNetwork from '@/components/factions/FactionNetwork';
 
 export default function SceneView() {
   const [characterId, setCharacterId] = useState(null);
   const [isProcessingChoice, setIsProcessingChoice] = useState(false);
+  const [showJournal, setShowJournal] = useState(false);
+  const [showFactionNet, setShowFactionNet] = useState(false);
+  const [isFindingGig, setIsFindingGig] = useState(false);
   const [cinematicData, setCinematicData] = useState(null);
   const [isCinematicLoading, setIsCinematicLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -493,6 +498,25 @@ export default function SceneView() {
       }
   };
 
+  const handleFindGig = async () => {
+      setIsFindingGig(true);
+      try {
+          const res = await base44.functions.invoke('generateProceduralQuest', { character_id: characterId });
+          if (res.data.quest) {
+              toast.success("New Opportunity Found", { 
+                  description: res.data.quest.title,
+                  icon: <Brain className="w-4 h-4 text-emerald-400"/> 
+              });
+              queryClient.invalidateQueries();
+          }
+      } catch (e) {
+          console.error(e);
+          toast.error("No opportunities found right now.");
+      } finally {
+          setIsFindingGig(false);
+      }
+  };
+
   const completeTransition = async () => {
     if (pendingNextSceneId) {
        await base44.entities.Character.update(character.id, {
@@ -597,6 +621,20 @@ export default function SceneView() {
             >
               <BookOpen className="w-4 h-4 mr-2" />
               Neural Archive
+            </Button>
+        </div>
+
+        {/* Toolbar */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <Button onClick={() => setShowJournal(true)} variant="outline" size="sm" className="border-amber-900/40 text-amber-500 hover:text-amber-200 hover:bg-amber-950/30">
+                <Book className="w-4 h-4 mr-2" /> Journal
+            </Button>
+            <Button onClick={() => setShowFactionNet(true)} variant="outline" size="sm" className="border-indigo-900/40 text-indigo-400 hover:text-indigo-200 hover:bg-indigo-950/30">
+                <Network className="w-4 h-4 mr-2" /> Faction Net
+            </Button>
+            <Button onClick={handleFindGig} disabled={isFindingGig} variant="outline" size="sm" className="border-emerald-900/40 text-emerald-500 hover:text-emerald-200 hover:bg-emerald-950/30">
+                {isFindingGig ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : <Brain className="w-4 h-4 mr-2" />} 
+                Scan for Gigs
             </Button>
         </div>
 
@@ -980,10 +1018,22 @@ export default function SceneView() {
 
           {/* Lore Master Panel */}
           <LoreMasterPanel 
-          characterId={character.id}
-          isOpen={showLoreMaster}
-          onClose={() => setShowLoreMaster(false)}
+            characterId={character.id}
+            isOpen={showLoreMaster}
+            onClose={() => setShowLoreMaster(false)}
           />
+
+          <JournalInterface 
+            characterId={character.id}
+            isOpen={showJournal}
+            onClose={() => setShowJournal(false)}
+          />
+
+          <FactionNetwork 
+             isOpen={showFactionNet}
+             onClose={() => setShowFactionNet(false)}
+          />
+
             </div>
 
             {/* Debug HUD */}
