@@ -104,10 +104,10 @@ export default function InventoryPanel({ characterId, isOpen, onClose }) {
                         </ScrollArea>
                     )}
 
-                    <div className="bg-indigo-950/20 p-3 rounded border border-indigo-900/30 flex gap-3 text-xs text-indigo-300">
-                        <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                    <div className="bg-slate-900/50 p-3 rounded border border-slate-800 flex gap-3 text-xs text-slate-500 italic">
+                        <Info className="w-4 h-4 shrink-0 mt-0.5 opacity-50" />
                         <p>
-                            Inventory space is deliberately limited. Prioritize items that align with your immediate goals or collaborative needs. Hoarding prevents flow.
+                            "Travel light. We are defined not by what we hoard, but by what we are willing to let go." — Void Weaver Maxim
                         </p>
                     </div>
                 </div>

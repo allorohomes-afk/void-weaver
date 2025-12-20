@@ -221,12 +221,7 @@ export default function SceneView() {
           toast(
               <div className="space-y-2">
                   <p className="font-medium text-sm">{narrative}</p>
-                  {intent_vs_impact_lesson && (
-                      <div className={`text-xs p-2 rounded border-l-2 ${community_impact < 0 ? 'bg-amber-950/30 border-amber-500 text-amber-200' : 'bg-indigo-950/30 border-indigo-500 text-indigo-200'}`}>
-                          <strong className="block uppercase tracking-wider text-[10px] opacity-70 mb-0.5">Impact Analysis</strong>
-                          {intent_vs_impact_lesson}
-                      </div>
-                  )}
+
               </div>, 
               {
                   duration: 8000,
