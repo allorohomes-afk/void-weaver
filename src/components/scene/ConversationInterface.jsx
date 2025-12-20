@@ -67,6 +67,23 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
                 icon: <Scroll className="w-4 h-4 text-amber-400" />
             });
         }
+
+        if (data.relationship_update) {
+            const { trust_change, favor_change, reason } = data.relationship_update;
+            if (trust_change !== 0) {
+                const isPos = trust_change > 0;
+                toast(
+                    <div className="flex flex-col">
+                        <span className="font-bold">{isPos ? 'Trust Gained' : 'Trust Lost'}</span>
+                        <span className="text-xs opacity-90">{reason || (isPos ? 'Relationship improved' : 'Relationship strained')}</span>
+                    </div>, 
+                    {
+                        icon: <Shield className={`w-4 h-4 ${isPos ? 'text-emerald-400' : 'text-red-400'}`} />,
+                        duration: 3000
+                    }
+                );
+            }
+        }
         };
 
     const handlePlayerChoice = async (choice) => {
@@ -127,7 +144,13 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
                                     {mood}
                                 </span>
                             </h3>
-                            <p className="text-xs text-slate-400">{npc.role}</p>
+                            <div className="flex items-center gap-3 text-xs text-slate-400">
+                                <span>{npc.role}</span>
+                                {/* Relationship Status would ideally be passed in or fetched. 
+                                    Since we don't have it in props effectively updated, 
+                                    we might need to fetch it or rely on toasts. 
+                                    For now, we keep it simple. */}
+                            </div>
                         </div>
                     </div>
                     <Button variant="ghost" size="icon" onClick={onClose} className="text-slate-400 hover:text-white">

@@ -127,7 +127,12 @@ Deno.serve(async (req) => {
                 "skill_updates": [
                     { "skill_key": "relational_1", "xp_amount": 10, "reason": "Showed empathy" }
                 ] (optional, max 1-2 skills),
-                "quest_offer": { "concept": "Investigate the leaking power conduit in Sector 4" } (optional, only if relevant)
+                "quest_offer": { "concept": "Investigate the leaking power conduit in Sector 4" } (optional, only if relevant),
+                "relationship_update": { 
+                    "trust_change": 5, 
+                    "favor_change": 0,
+                    "reason": "Player showed loyalty"
+                } (optional)
             }
         `;
 
@@ -172,15 +177,42 @@ Deno.serve(async (req) => {
                             },
                             required: ["skill_key", "xp_amount"]
                         }
+                    },
+                    relationship_update: {
+                        type: "object",
+                        properties: {
+                            trust_change: { type: "integer" },
+                            favor_change: { type: "integer" },
+                            reason: { type: "string" }
+                        }
                     }
                 },
                 required: ["dialogue", "choices"]
             }
         });
 
-        // 5. Update NPC Emotional State
+        // 5. Update Relationship & NPC Emotional State
         if (llmRes.new_npc_emotional_state) {
             await base44.entities.NPC.update(npc.id, { emotional_state: llmRes.new_npc_emotional_state });
+        }
+
+        if (llmRes.relationship_update) {
+            const { trust_change = 0, favor_change = 0 } = llmRes.relationship_update;
+            if (trust_change !== 0 || favor_change !== 0) {
+                if (relationship) {
+                    await base44.entities.Relationship.update(relationship.id, {
+                        trust: (relationship.trust || 0) + trust_change,
+                        favor_balance: (relationship.favor_balance || 0) + favor_change
+                    });
+                } else {
+                    await base44.entities.Relationship.create({
+                        character_id: character.id,
+                        npc_id: npc.id,
+                        trust: trust_change,
+                        favor_balance: favor_change
+                    });
+                }
+            }
         }
 
         // 6. Handle Memory Update (Side Effect)

@@ -19,6 +19,30 @@ Deno.serve(async (req) => {
                 status: 'active',
                 created_at: new Date().toISOString()
             });
+
+            // Update Relationship Favor Balance
+            // Value Map
+            const valMap = { trivial: 1, minor: 3, standard: 5, major: 10, life_debt: 25 };
+            const pointValue = valMap[value || 'minor'] || 3;
+            
+            // If type is 'owed_by_player', player debt increases -> balance goes DOWN (negative)
+            // If type is 'owed_to_player', player credit increases -> balance goes UP (positive)
+            const balanceDelta = (type === 'owed_to_player') ? pointValue : -pointValue;
+
+            const rels = await base44.entities.Relationship.filter({ character_id: character_id, npc_id: npc_id });
+            if (rels.length > 0) {
+                await base44.entities.Relationship.update(rels[0].id, {
+                    favor_balance: (rels[0].favor_balance || 0) + balanceDelta
+                });
+            } else {
+                 await base44.entities.Relationship.create({
+                    character_id: character_id,
+                    npc_id: npc_id,
+                    trust: 0,
+                    favor_balance: balanceDelta
+                });
+            }
+
             return Response.json({ status: 'created', favor });
         }
 
@@ -52,8 +76,24 @@ Deno.serve(async (req) => {
                          if (f.value === 'major') trustDelta = -40;
                      }
 
+                     // Update Favor Balance (Reverse the creation impact)
+                     // If I completed a favor I owed, I no longer owe it -> balance goes UP (e.g. -5 to 0)
+                     // If I completed a favor owed TO me (wait, that implies NPC completed it), balance goes DOWN (e.g. 5 to 0)
+                     
+                     // NOTE: 'complete' usually implies the DEBTOR fulfilled it.
+                     // If type is 'owed_by_player' (Player is debtor), completion means Player paid -> Balance +Value
+                     // If type is 'owed_to_player' (NPC is debtor), completion means NPC paid -> Balance -Value
+                     
+                     // If 'renege', the debt is cancelled (but with trust penalty). Logic is same for balance (debt removed).
+                     
+                     const valMap = { trivial: 1, minor: 3, standard: 5, major: 10, life_debt: 25 };
+                     const pointValue = valMap[f.value || 'minor'] || 3;
+                     
+                     const balanceCorrection = (f.type === 'owed_to_player') ? -pointValue : pointValue;
+
                      await base44.entities.Relationship.update(rel.id, {
-                         trust: (rel.trust || 0) + trustDelta
+                         trust: (rel.trust || 0) + trustDelta,
+                         favor_balance: (rel.favor_balance || 0) + balanceCorrection
                      });
                  }
              }
