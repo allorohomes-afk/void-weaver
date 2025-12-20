@@ -297,6 +297,20 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
                           <Database className="w-3 h-3 mr-1.5" /> Admin Actions
                       </h3>
                       <Button 
+                          onClick={async () => {
+                              toast.promise(base44.functions.invoke('seedResources'), {
+                                  loading: 'Seeding Resources...',
+                                  success: 'Resources Seeded!',
+                                  error: 'Failed to seed resources'
+                              });
+                          }}
+                          variant="outline"
+                          className="w-full border-emerald-500/30 hover:bg-emerald-950/50 text-emerald-300 text-xs mb-2"
+                      >
+                          <Database className="w-3 h-3 mr-2" />
+                          Seed Base Resources
+                      </Button>
+                      <Button 
                           onClick={handleSeedMission5}
                           variant="outline"
                           className="w-full border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-xs mb-2"

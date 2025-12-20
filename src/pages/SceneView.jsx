@@ -17,12 +17,17 @@ import LoreMasterPanel from '@/components/scene/LoreMasterPanel';
 import { BookOpen, Network, Book } from 'lucide-react';
 import JournalInterface from '@/components/journal/JournalInterface';
 import FactionNetwork from '@/components/factions/FactionNetwork';
+import InventoryPanel from '@/components/economy/InventoryPanel';
+import FavorLog from '@/components/economy/FavorLog';
+import { Package, Handshake } from 'lucide-react';
 
 export default function SceneView() {
   const [characterId, setCharacterId] = useState(null);
   const [isProcessingChoice, setIsProcessingChoice] = useState(false);
   const [showJournal, setShowJournal] = useState(false);
   const [showFactionNet, setShowFactionNet] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
+  const [showFavors, setShowFavors] = useState(false);
   const [isFindingGig, setIsFindingGig] = useState(false);
   const [cinematicData, setCinematicData] = useState(null);
   const [isCinematicLoading, setIsCinematicLoading] = useState(false);
@@ -632,6 +637,12 @@ export default function SceneView() {
             <Button onClick={() => setShowFactionNet(true)} variant="outline" size="sm" className="border-indigo-900/40 text-indigo-400 hover:text-indigo-200 hover:bg-indigo-950/30">
                 <Network className="w-4 h-4 mr-2" /> Faction Net
             </Button>
+            <Button onClick={() => setShowInventory(true)} variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800">
+                <Package className="w-4 h-4 mr-2" /> Inventory
+            </Button>
+            <Button onClick={() => setShowFavors(true)} variant="outline" size="sm" className="border-amber-900/40 text-amber-500 hover:text-amber-200 hover:bg-amber-950/30">
+                <Handshake className="w-4 h-4 mr-2" /> Favors
+            </Button>
             <Button onClick={handleFindGig} disabled={isFindingGig} variant="outline" size="sm" className="border-emerald-900/40 text-emerald-500 hover:text-emerald-200 hover:bg-emerald-950/30">
                 {isFindingGig ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : <Brain className="w-4 h-4 mr-2" />} 
                 Scan for Gigs
@@ -1039,6 +1050,18 @@ export default function SceneView() {
           <FactionNetwork 
              isOpen={showFactionNet}
              onClose={() => setShowFactionNet(false)}
+          />
+
+          <InventoryPanel
+             characterId={characterId}
+             isOpen={showInventory}
+             onClose={() => setShowInventory(false)}
+          />
+
+          <FavorLog 
+             characterId={characterId}
+             isOpen={showFavors}
+             onClose={() => setShowFavors(false)}
           />
 
             </div>
