@@ -40,6 +40,10 @@ Deno.serve(async (req) => {
                 const fileExt = init_image_url.split('.').pop().split('?')[0] || 'jpg';
 
                 // B. Get Presigned URL from Leonardo
+                // Ensure extension is valid (jpg, jpeg, png, webp)
+                const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+                const safeExt = validExts.includes(fileExt.toLowerCase()) ? fileExt.toLowerCase() : 'jpg';
+
                 const preResp = await fetch('https://cloud.leonardo.ai/api/rest/v1/init-image', {
                     method: 'POST',
                     headers: {
@@ -47,7 +51,7 @@ Deno.serve(async (req) => {
                         'content-type': 'application/json',
                         'authorization': `Bearer ${LEONARDO_API_KEY}`
                     },
-                    body: JSON.stringify({ extension: fileExt })
+                    body: JSON.stringify({ extension: safeExt })
                 });
 
                 if (!preResp.ok) {
@@ -78,14 +82,17 @@ Deno.serve(async (req) => {
                         method: 'POST',
                         body: formData
                     });
-                    if (!uploadResp.ok) throw new Error("Failed to upload image to Leonardo S3");
+                    if (!uploadResp.ok) throw new Error(`Failed to upload image to Leonardo S3: ${uploadResp.status}`);
                 } else {
                     // PUT
                     const uploadResp = await fetch(uploadUrl, {
                         method: 'PUT',
+                        headers: {
+                            'Content-Type': imgBlob.type || 'application/octet-stream'
+                        },
                         body: imgBlob
                     });
-                     if (!uploadResp.ok) throw new Error("Failed to upload image to Leonardo via PUT");
+                     if (!uploadResp.ok) throw new Error(`Failed to upload image to Leonardo via PUT: ${uploadResp.status}`);
                 }
 
                 initImageId = imageId;
