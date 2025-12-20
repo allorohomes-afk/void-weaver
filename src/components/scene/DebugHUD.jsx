@@ -325,6 +325,20 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
                           Seed Chapter Endings
                       </Button>
                       <Button 
+                          onClick={async () => {
+                              toast.promise(base44.functions.invoke('seedArchetypes'), {
+                                  loading: 'Seeding Archetypes...',
+                                  success: 'Archetypes Updated',
+                                  error: 'Failed to seed archetypes'
+                              });
+                          }}
+                          variant="outline"
+                          className="w-full border-pink-500/30 hover:bg-pink-950/50 text-pink-300 text-xs mb-2"
+                      >
+                          <Brain className="w-3 h-3 mr-2" />
+                          Seed Personality Archetypes
+                      </Button>
+                      <Button 
                           onClick={handleSeedMission5}
                           variant="outline"
                           className="w-full border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-xs mb-2"

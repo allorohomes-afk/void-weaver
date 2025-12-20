@@ -72,12 +72,21 @@ Deno.serve(async (req) => {
             Archetype: ${npc.archetype}
             Emotional State: ${npc.emotional_state || 'Neutral'}
             ${archetypeData ? `
-            ARCHETYPE TRAITS (${archetypeData.name}):
-            - Behaviors: ${archetypeData.behavioral_traits ? archetypeData.behavioral_traits.join(', ') : 'None'}
-            - Vocal Tics: ${archetypeData.vocal_tics ? archetypeData.vocal_tics.join(', ') : 'None'}
-            - Motivation: ${archetypeData.motivations}
-            - Core Fear: ${archetypeData.core_fear}
-            - Core Desire: ${archetypeData.core_desire}
+            ARCHETYPE PROFILE (${archetypeData.name}):
+            
+            [PRESENTATION LAYERS]
+            SOCIAL MASK (Default): "${archetypeData.social_mask || 'Standard Role'}"
+            TRUE NATURE (Hidden): "${archetypeData.true_nature || 'Unknown'}"
+            
+            [EXPRESSION]
+            SPEAKING STYLE: ${archetypeData.speaking_style || 'Normal'}
+            VOCAL TICS: ${archetypeData.vocal_tics ? archetypeData.vocal_tics.join(', ') : 'None'}
+            PHYSICAL BEHAVIORS: ${archetypeData.behavioral_traits ? archetypeData.behavioral_traits.join(', ') : 'None'}
+            
+            [PSYCHOLOGY]
+            MOTIVATION: ${archetypeData.motivations}
+            CORE FEAR: ${archetypeData.core_fear}
+            STRESS RESPONSE: "${archetypeData.stress_response || 'Withdrawal'}" (Triggered by: ${archetypeData.stress_triggers ? archetypeData.stress_triggers.join(', ') : 'Threats'})
             ` : ''}
             
             RELATIONSHIP TO PLAYER:
@@ -108,6 +117,12 @@ Deno.serve(async (req) => {
                 - High Masculine Energy (>70): NPC respects directness/action, may challenge passivity.
                 - High Feminine Energy (>70): NPC responds to connection/nuance, may be overwhelmed by aggression.
                 - High Insight (>70): NPC knows they can't lie to the player; they are more direct with truth.
+            
+            - DYNAMIC PERSONA SWITCHING:
+                - IF TRUST > 50 OR INSIGHT > 60: Reveal aspects of their TRUE NATURE. Drop the SOCIAL MASK.
+                - IF SAFETY < 30 OR TONE IS AGGRESSIVE: Trigger the STRESS RESPONSE.
+                - OTHERWISE: Maintain the SOCIAL MASK.
+            
             - Reference past memories if relevant.
             - If the player demonstrates a specific skill through their words or approach (e.g. empathy -> relational, logic -> critical_thought), AWARD XP.
             - If Trust is high or the conversation warrants it, you may OFFER A QUEST (a favor, investigation, or mission).
