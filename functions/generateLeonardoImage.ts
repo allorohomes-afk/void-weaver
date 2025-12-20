@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
                 // Ensure extension is valid (jpg, jpeg, png, webp)
                 const validExts = ['jpg', 'jpeg', 'png', 'webp'];
                 const safeExt = validExts.includes(fileExt.toLowerCase()) ? fileExt.toLowerCase() : 'jpg';
+                const mimeType = safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg';
 
                 const preResp = await fetch('https://cloud.leonardo.ai/api/rest/v1/init-image', {
                     method: 'POST',
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
                     const uploadResp = await fetch(uploadUrl, {
                         method: 'PUT',
                         headers: {
-                            'Content-Type': imgBlob.type || 'application/octet-stream'
+                            'Content-Type': mimeType
                         },
                         body: imgBlob
                     });

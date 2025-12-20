@@ -148,7 +148,8 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       return { url: result.data.url, prompt };
     } catch (error) {
       console.error("Generation failed:", error);
-      toast.error(`Failed to generate portrait: ${error.message}`);
+      const errMsg = error.response?.data?.error || error.message || "Unknown error occurred";
+      toast.error(`Failed to generate portrait: ${errMsg}`);
       return null;
     } finally {
       setIsGenerating(false);
