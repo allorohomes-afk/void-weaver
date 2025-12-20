@@ -734,6 +734,13 @@ export default function SceneView() {
             ) : (
             /* Scene content */
             <div className="bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-slate-700">
+              {currentScene.chapter && (
+                <div className="mb-4 text-center">
+                  <span className="text-xs font-bold tracking-[0.2em] text-indigo-400 uppercase border-b border-indigo-500/30 pb-1">
+                    {currentScene.chapter}
+                  </span>
+                </div>
+              )}
               {isCinematicLoading ? (
                   <div className="mb-6 h-64 w-full rounded-lg bg-slate-900/50 flex flex-col items-center justify-center border border-slate-800 animate-pulse">
                       <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-4" />
