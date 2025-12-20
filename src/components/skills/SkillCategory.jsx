@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import SkillNode from './SkillNode';
 
-export default function SkillCategory({ category, skills, characterSkills, character, onSkillClick }) {
+export default function SkillCategory({ category, skills, characterSkills, character, onSkillClick, recommendedIds = [] }) {
     const [isOpen, setIsOpen] = useState(true);
 
     // Group by Tier
@@ -67,6 +67,7 @@ export default function SkillCategory({ category, skills, characterSkills, chara
                                     status={getSkillStatus(skill.id)}
                                     progress={getProgress(skill)}
                                     onClick={onSkillClick}
+                                    isRecommended={recommendedIds.includes(skill.id)}
                                 />
                             ))}
                         </div>
@@ -80,6 +81,7 @@ export default function SkillCategory({ category, skills, characterSkills, chara
                                     status={getSkillStatus(skill.id)}
                                     progress={getProgress(skill)}
                                     onClick={onSkillClick}
+                                    isRecommended={recommendedIds.includes(skill.id)}
                                 />
                             ))}
                         </div>
@@ -93,6 +95,7 @@ export default function SkillCategory({ category, skills, characterSkills, chara
                                     status={getSkillStatus(skill.id)}
                                     progress={getProgress(skill)}
                                     onClick={onSkillClick}
+                                    isRecommended={recommendedIds.includes(skill.id)}
                                 />
                             ))}
                         </div>
