@@ -62,17 +62,17 @@ export default function ConsequenceLedger({ characterId }) {
             <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="w-full justify-start text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 group">
                     <Activity className="w-4 h-4 mr-2 group-hover:animate-pulse" />
-                    <span>Consequence Ledger</span>
+                    <span>Causality Matrix</span>
                 </Button>
             </DialogTrigger>
             <DialogContent className="bg-slate-950/95 border-cyan-900/50 text-slate-100 max-w-3xl backdrop-blur-xl h-[80vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-cyan-400 font-orbitron tracking-wider">
                         <Globe className="w-5 h-5" />
-                        Global Consequence Ledger
+                        Causality Matrix
                     </DialogTitle>
                     <p className="text-xs text-slate-500 uppercase tracking-widest">
-                        Tracking the ripple effects of your will
+                        Monitoring world resonance and variance
                     </p>
                 </DialogHeader>
 
