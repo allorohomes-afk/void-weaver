@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Zap, Shield, Brain, Heart, Eye, Users, Activity, Hexagon } from 'lucide-react';
+import { Lock, Zap, Shield, Brain, Heart, Eye, Users, Activity, Hexagon, Star } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-export default function SkillNode({ skill, status, progress, onClick }) {
+export default function SkillNode({ skill, status, progress, onClick, isRecommended }) {
     const isLocked = status === 'locked';
     const isUnlocked = status === 'unlocked';
     
@@ -31,7 +31,8 @@ export default function SkillNode({ skill, status, progress, onClick }) {
                     "relative w-20 h-20 rounded-xl border-2 flex items-center justify-center transition-all duration-300 backdrop-blur-md bg-slate-900/80",
                     isUnlocked ? `${colorClass} shadow-[0_0_15px_rgba(0,0,0,0.3)] border-opacity-100` : 
                     progress > 0 ? "border-amber-500/60 text-amber-500/60 shadow-[0_0_10px_rgba(245,158,11,0.1)]" :
-                    "border-slate-700 text-slate-700 opacity-70 grayscale"
+                    "border-slate-700 text-slate-700 opacity-70 grayscale",
+                    isRecommended && "ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_20px_rgba(52,211,153,0.3)]"
                 )}
             >
                 {/* Background Glow for Unlocked */}
@@ -48,6 +49,13 @@ export default function SkillNode({ skill, status, progress, onClick }) {
                     />
                 ) : (
                     <Hexagon className="w-10 h-10 stroke-1" />
+                )}
+
+                {/* Recommendation Badge */}
+                {isRecommended && (
+                    <div className="absolute -top-3 -left-3 w-7 h-7 rounded-full bg-emerald-500 border-2 border-slate-950 flex items-center justify-center z-30 shadow-lg shadow-emerald-500/30 animate-bounce">
+                        <Star className="w-4 h-4 text-slate-950 fill-current" />
+                    </div>
                 )}
 
                 {/* Tier Badge */}
