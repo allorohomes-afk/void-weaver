@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { AlertCircle, Radio, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConsequenceLedger from '@/components/scene/ConsequenceLedger';
 
 export default function WorldContextPanel({ characterId, sceneId }) {
     const [events, setEvents] = useState([]);
@@ -42,6 +43,9 @@ export default function WorldContextPanel({ characterId, sceneId }) {
 
     return (
         <div className="space-y-4">
+            {/* Ledger Access */}
+            <ConsequenceLedger characterId={characterId} />
+
             {/* News Ticker / Broadcast */}
             <AnimatePresence>
                 {events.map(event => (
