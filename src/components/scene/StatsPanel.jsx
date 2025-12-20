@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Brain, Eye, Shield, Heart, Zap, Moon } from 'lucide-react';
+import PersonalGrowthDashboard from '@/components/character/PersonalGrowthDashboard';
 
 export default function StatsPanel({ character }) {
   const stats = [
@@ -31,7 +32,7 @@ export default function StatsPanel({ character }) {
 
   return (
     <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
-      <CardHeader className="border-b border-slate-700">
+      <CardHeader className="border-b border-slate-700 pb-3">
         <div className="flex justify-between items-start">
             <div>
                 <CardTitle className="text-white text-lg">{character.name}</CardTitle>
@@ -42,6 +43,9 @@ export default function StatsPanel({ character }) {
                     {character.emotional_state}
                 </div>
             )}
+        </div>
+        <div className="pt-2">
+            <PersonalGrowthDashboard characterId={character.id} />
         </div>
       </CardHeader>
       <CardContent className="p-4 space-y-6">
