@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SkillCategory from '@/components/skills/SkillCategory';
 import SkillDetailModal from '@/components/skills/SkillDetailModal';
+import SkillAdvisor from '@/components/skills/SkillAdvisor';
 
 export default function SkillTreePage() {
     const [characterId, setCharacterId] = useState(null);
     const [selectedSkill, setSelectedSkill] = useState(null);
+    const [recommendedSkillIds, setRecommendedSkillIds] = useState([]);
 
     // Initialize Character ID
     useEffect(() => {
@@ -96,6 +98,11 @@ export default function SkillTreePage() {
                 </div>
 
                 <div className="flex items-center gap-6">
+                    <SkillAdvisor 
+                        characterId={characterId} 
+                        allSkills={allSkills}
+                        onRecommend={setRecommendedSkillIds}
+                    />
                     <div className="text-right">
                         <div className="text-xs text-slate-500 uppercase">Mastery</div>
                         <div className="text-lg font-mono font-bold text-indigo-400">{masteryPct}%</div>
@@ -122,6 +129,7 @@ export default function SkillTreePage() {
                                 characterSkills={characterSkills}
                                 character={character}
                                 onSkillClick={setSelectedSkill}
+                                recommendedIds={recommendedSkillIds}
                             />
                         );
                     })}
