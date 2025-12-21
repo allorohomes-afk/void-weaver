@@ -121,12 +121,26 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       let result;
 
       const simpleStyle = "1980s anime cel animation style, hand-drawn quality, vibrant colors with neon accents, clean lines.";
+      
+      // Build age-appropriate descriptors
+      let ageDescriptor = "";
+      let negativePrompt = "";
+      if (formData.age && formData.age < 13) {
+        ageDescriptor = `young child, ${formData.age} years old, childlike features, small stature, youthful face`;
+        negativePrompt = "adult, mature, teenager, aged, older person, grown up";
+      } else if (formData.age && formData.age < 18) {
+        ageDescriptor = `teenager, ${formData.age} years old, adolescent features`;
+        negativePrompt = "adult, mature, aged, older person, child";
+      } else {
+        ageDescriptor = `${formData.age || 18} years old`;
+        negativePrompt = "child, baby, toddler, young child";
+      }
 
       if (formData.reference_photo_url) {
          const uniformDesc = getSafeUniformDescription(formData.outfit_style, formData.age);
-         prompt = `Use reference photo. Keep facial features. Void Weaver in ${uniformDesc}. ${buildCharacterVisualPrompt(formData)}. ${simpleStyle}`;
+         prompt = `${ageDescriptor}, Void Weaver, ${formData.skin_tone} skin, ${formData.hair_length} ${formData.hair_color} hair. ${uniformDesc}. ${simpleStyle}`;
       } else {
-         prompt = `${buildCharacterVisualPrompt(formData)}. ${simpleStyle}`;
+         prompt = `${ageDescriptor}, ${buildCharacterVisualPrompt(formData)}. ${simpleStyle}`;
       }
       
       // Enforce 1500 char limit
@@ -138,6 +152,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       
       result = await base44.functions.invoke('generateLeonardoImage', {
         prompt: prompt,
+        negative_prompt: negativePrompt,
         width: 768,
         height: 1024,
         init_image_url: formData.reference_photo_url
