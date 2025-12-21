@@ -127,13 +127,13 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       let ageDescriptor = "";
       let negativePrompt = "";
       if (formData.age && formData.age < 13) {
-        ageDescriptor = `young child, ${formData.age} years old, childlike features, small stature, youthful face`;
-        negativePrompt = "adult, mature, teenager, aged, older person, grown up";
+        ageDescriptor = `${formData.age} year old child, age ${formData.age}, elementary school age`;
+        negativePrompt = "adult, mature, teenager, aged, older person, grown up, toddler, baby, preschooler";
       } else if (formData.age && formData.age < 18) {
-        ageDescriptor = `teenager, ${formData.age} years old, adolescent features`;
+        ageDescriptor = `${formData.age} year old teenager, adolescent`;
         negativePrompt = "adult, mature, aged, older person, child";
       } else {
-        ageDescriptor = `${formData.age || 18} years old`;
+        ageDescriptor = `${formData.age || 18} years old adult`;
         negativePrompt = "child, baby, toddler, young child";
       }
 

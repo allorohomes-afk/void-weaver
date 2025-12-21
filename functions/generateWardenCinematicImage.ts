@@ -39,11 +39,11 @@ Deno.serve(async (req) => {
         // Build age-appropriate descriptors
         let ageDescriptor = "";
         if (age < 13) {
-            ageDescriptor = `young child, ${age} years old, childlike features, small stature, youthful face`;
+            ageDescriptor = `${age} year old child, age ${age}, elementary school age`;
         } else if (age < 18) {
-            ageDescriptor = `teenager, ${age} years old, adolescent features`;
+            ageDescriptor = `${age} year old teenager, adolescent`;
         } else {
-            ageDescriptor = `${age} years old, adult`;
+            ageDescriptor = `${age} years old adult`;
         }
         
         let physicalDescription = `AGE: ${ageDescriptor}. PRONOUNS: ${pronouns}. Skin: ${skinTone}. Body: ${bodyType}.`;
