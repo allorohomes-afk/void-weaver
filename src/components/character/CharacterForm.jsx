@@ -24,7 +24,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
     age_range: initialData?.age_range || '',
     age: initialData?.age || '', // Start empty if no initial data to allow typing freely
     face_vibe: initialData?.face_vibe || '',
-    outfit_style: initialData?.outfit_style || 'streetops',
+    outfit_style: initialData?.outfit_style || (initialData?.age && initialData.age < 18 ? 'academy' : 'streetops'),
     reference_photo_url: initialData?.reference_photo_url || ''
   });
 
@@ -58,7 +58,8 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
   const uniformDescriptions = {
     streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
     starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-    infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
+    infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows.",
+    academy: "Void Weaver Academy cadet uniform: navy blue blazer with silver trim, white collared shirt, academy crest patch, comfortable slacks, and polished shoes. Clean, age-appropriate school uniform inspired by classic anime academies."
   };
 
   const getSafeUniformDescription = (style, age) => {
@@ -386,7 +387,7 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
         <div className="space-y-4 pt-4 border-t border-slate-700">
           <h3 className="text-lg font-medium text-white">Void Weaver Uniform</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {['streetops', 'starfleet', 'infiltrationsuit'].map((style) => (
+            {['streetops', 'starfleet', 'infiltrationsuit', formData.age && formData.age < 18 ? 'academy' : null].filter(Boolean).map((style) => (
               <div 
                 key={style}
                 onClick={() => setFormData({...formData, outfit_style: style})}
