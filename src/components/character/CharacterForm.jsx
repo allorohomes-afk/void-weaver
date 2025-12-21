@@ -119,18 +119,18 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       let prompt;
       let result;
 
+      const simpleStyle = "1980s anime cel animation style, hand-drawn quality, vibrant colors with neon accents, clean lines.";
+
       if (formData.reference_photo_url) {
          const uniformDesc = getSafeUniformDescription(formData.outfit_style, formData.age);
-         prompt = `
-            Use the reference photo as the base.
-            Keep core facial features, skin tone, and general proportions.
-            Transform into a Void Weaver.
-            Outfit: ${uniformDesc}
-            Visuals: ${buildCharacterVisualPrompt(formData)}.
-            Style: ${getLeonardoStyle()}
-          `;
+         prompt = `Use reference photo. Keep facial features. Void Weaver in ${uniformDesc}. ${buildCharacterVisualPrompt(formData)}. ${simpleStyle}`;
       } else {
-         prompt = buildCharacterVisualPrompt(formData);
+         prompt = `${buildCharacterVisualPrompt(formData)}. ${simpleStyle}`;
+      }
+      
+      // Enforce 1500 char limit
+      if (prompt.length > 1500) {
+        prompt = prompt.substring(0, 1497) + "...";
       }
       
       setGenerationPrompt(prompt);
