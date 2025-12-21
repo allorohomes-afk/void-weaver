@@ -93,8 +93,9 @@ export default function CharacterForm({ onSubmit, onCancel, isCreating, initialD
       : data.body_type_primary;
     
     const uniformDesc = getSafeUniformDescription(data.outfit_style, data.age);
+    const ageDesc = data.age ? `${data.age} year old` : data.age_range;
 
-    return `A cinematic portrait of a Void Weaver with ${data.skin_tone} skin, ${data.eye_color ? `${data.eye_color} eyes, ` : ''}${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, age ${data.age || data.age_range}, ${data.gender_presentation} style, wearing the ${uniformDesc}. Realistic, grounded lighting.`;
+    return `Portrait of a ${ageDesc} Void Weaver, ${data.skin_tone} skin, ${data.eye_color ? `${data.eye_color} eyes, ` : ''}${bodyDescription} build, ${data.hair_length} ${data.hair_texture} ${data.hair_color} hair, ${data.face_vibe} expression, ${data.gender_presentation} presentation. Wearing ${uniformDesc}`;
   };
 
   const handleFileUpload = async (e) => {
