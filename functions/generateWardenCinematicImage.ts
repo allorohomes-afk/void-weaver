@@ -33,8 +33,20 @@ Deno.serve(async (req) => {
         const skinTone = character.skin_tone || "neutral";
         const bodyType = character.body_type_primary || "average";
         const hairTex = character.hair_texture ? `${character.hair_texture} texture` : "";
+        const age = character.age || 18;
+        const pronouns = character.pronouns || "they/them";
         
-        let physicalDescription = `Skin: ${skinTone}. Body: ${bodyType}.`;
+        // Build age-appropriate descriptors
+        let ageDescriptor = "";
+        if (age < 13) {
+            ageDescriptor = `young child, ${age} years old, childlike features, small stature, youthful face`;
+        } else if (age < 18) {
+            ageDescriptor = `teenager, ${age} years old, adolescent features`;
+        } else {
+            ageDescriptor = `${age} years old, adult`;
+        }
+        
+        let physicalDescription = `AGE: ${ageDescriptor}. PRONOUNS: ${pronouns}. Skin: ${skinTone}. Body: ${bodyType}.`;
         
         // Explicitly handle Bald/Shaved to override anime hair bias
         const baldKeywords = ["bald", "shaved", "none", "no hair", "clean shaven"];
@@ -69,7 +81,8 @@ Deno.serve(async (req) => {
         const uniformDescriptions = {
           streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
           starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-          infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows."
+          infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows.",
+          academy: "Void Weaver Academy cadet uniform: navy blue blazer with silver trim, white collared shirt, academy crest patch, comfortable slacks, and polished shoes. Clean, age-appropriate school uniform inspired by classic anime academies."
         };
         const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.streetops;
 
@@ -100,10 +113,21 @@ Deno.serve(async (req) => {
              prompt += `\nVisual Description: ${character.character_visual_prompt}`;
         }
 
-        let negativePrompt = undefined;
+        let negativePrompt = "";
         if (isBald) {
             negativePrompt = "hair, long hair, messy hair, wig, bangs, beard (unless specified)";
         }
+        
+        // Add age-appropriate negative prompts
+        if (age < 13) {
+            negativePrompt += ", adult, mature, teenager, aged, older person, grown up, masculine features, facial hair";
+        } else if (age < 18) {
+            negativePrompt += ", adult, mature, aged, older person, child, masculine features, facial hair";
+        } else {
+            negativePrompt += ", child, baby, toddler, young child";
+        }
+        
+        negativePrompt = negativePrompt || undefined;
 
         // 2.5 Fetch Additional Reference Images
         let refUrls = [];
