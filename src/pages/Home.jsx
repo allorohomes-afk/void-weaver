@@ -63,6 +63,7 @@ export default function Home() {
                 Enter Simulation <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 
+                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 size="lg" 
                 variant="outline" 
                 className="border-slate-700 text-slate-300 hover:bg-slate-800 min-w-[200px] h-14 text-lg"
