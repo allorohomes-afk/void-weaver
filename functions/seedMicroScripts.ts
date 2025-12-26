@@ -1,6 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-export default async function handler(req) {
+Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
@@ -33,4 +33,4 @@ export default async function handler(req) {
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
     }
-}
+});
