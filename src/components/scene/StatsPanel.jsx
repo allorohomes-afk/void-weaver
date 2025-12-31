@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Brain, Eye, Shield, Heart, Zap, Moon } from 'lucide-react';
+import { Brain, Eye, Shield, Heart, Zap, Moon, Waves } from 'lucide-react';
 import PersonalGrowthDashboard from '@/components/character/PersonalGrowthDashboard';
 
 export default function StatsPanel({ character }) {
@@ -30,6 +30,15 @@ export default function StatsPanel({ character }) {
       }
   };
 
+  const getResonanceLabel = (value) => {
+    if (value >= 70) return { label: 'Attuned', color: 'from-cyan-400 to-blue-500' };
+    if (value >= 50) return { label: 'Aligned', color: 'from-indigo-400 to-purple-500' };
+    if (value >= 30) return { label: 'Dissonant', color: 'from-amber-400 to-orange-500' };
+    return { label: 'Fractured', color: 'from-red-500 to-rose-600' };
+  };
+
+  const resonanceStatus = getResonanceLabel(character.resonance_flow || 50);
+
   return (
     <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
       <CardHeader className="border-b border-slate-700 pb-3">
@@ -49,6 +58,26 @@ export default function StatsPanel({ character }) {
         </div>
       </CardHeader>
       <CardContent className="p-4 space-y-6">
+        {/* Resonance Flow */}
+        <div className="space-y-2 pb-4 border-b border-slate-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Waves className="w-4 h-4 text-cyan-400" />
+              <h3 className="text-slate-300 text-sm font-semibold uppercase tracking-wide">Resonance Flow</h3>
+            </div>
+            <span className="text-white font-bold">{character.resonance_flow || 50}</span>
+          </div>
+          <div className="h-2 bg-slate-900 rounded-full overflow-hidden">
+            <div 
+              className={`h-full bg-gradient-to-r ${resonanceStatus.color} transition-all duration-500`}
+              style={{ width: `${character.resonance_flow || 50}%` }}
+            />
+          </div>
+          <p className="text-xs text-slate-400 italic">
+            Status: <span className={`font-semibold bg-gradient-to-r ${resonanceStatus.color} bg-clip-text text-transparent`}>{resonanceStatus.label}</span>
+          </p>
+        </div>
+        
         {/* Core Stats */}
         <div className="space-y-3">
           <h3 className="text-slate-300 text-sm font-semibold uppercase tracking-wide">Core Stats</h3>

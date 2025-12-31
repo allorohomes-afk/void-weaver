@@ -39,6 +39,13 @@ Deno.serve(async (req) => {
         const choice = choices[0];
         let effectApplied = false;
         let skillProgressions = [];
+        
+        // Process Resonance Flow Impact
+        if (choice.resonance_impact) {
+            const newResonance = Math.max(0, Math.min(100, (character.resonance_flow || 50) + choice.resonance_impact));
+            await base44.entities.Character.update(character.id, { resonance_flow: newResonance });
+            character.resonance_flow = newResonance;
+        }
 
         // 3. Process Effects
         if (choice.effect_script_id) {
