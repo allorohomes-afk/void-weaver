@@ -8,6 +8,7 @@ import WorldContextPanel from '../components/scene/WorldContextPanel';
 import QuestLog from '../components/scene/QuestLog';
 import ChoiceButton from '../components/scene/ChoiceButton';
 import ConversationInterface from '../components/scene/ConversationInterface';
+import InteractiveEnvironment from '../components/scene/InteractiveEnvironment';
 import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle, Search, Eye, Brain, Scan, MousePointer2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
@@ -1010,6 +1011,14 @@ export default function SceneView() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            <InteractiveEnvironment 
+              sceneId={currentScene.id}
+              characterId={character.id}
+              character={character}
+              onInteractionComplete={() => {
+                queryClient.invalidateQueries(['character', character.id]);
+              }}
+            />
             <WorldContextPanel characterId={character.id} sceneId={currentScene.id} />
             <QuestLog characterId={character.id} />
             <StatsPanel character={character} />
