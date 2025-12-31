@@ -1,6 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-export default async function handler(req) {
+Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
@@ -26,22 +26,49 @@ export default async function handler(req) {
         const scenes = await base44.entities.Scene.filter({ id: sceneId });
         const scene = scenes[0];
 
-        // 2. Determine Outcome via LLM
+        // 2. Check Stat Advantages/Disadvantages
+        const { insight = 0, care = 0, resolve = 0, presence = 0 } = character;
+        let statBonus = 0;
+        let statPenalty = 0;
+        
+        switch(object.type) {
+            case 'examine':
+                statBonus = insight >= 30 ? 15 : 0;
+                break;
+            case 'connect':
+                statBonus = insight >= 40 ? 20 : 0;
+                statPenalty = insight < 20 ? -15 : 0;
+                break;
+            case 'hack':
+                statBonus = resolve >= 35 ? 25 : 0;
+                statPenalty = resolve < 20 ? -20 : 0;
+                break;
+            case 'interact':
+                statBonus = presence >= 30 ? 10 : 0;
+                break;
+            case 'recover':
+                statBonus = care >= 25 ? 10 : 0;
+                statPenalty = care < 15 ? -10 : 0;
+                break;
+        }
+
+        // 3. Determine Outcome via LLM
         const prompt = `
             Roleplay Interaction:
-            Character: ${character.name} (Insight: ${character.insight}, Care: ${character.care})
+            Character: ${character.name}
+            Stats: Insight ${insight}, Care ${care}, Resolve ${resolve}, Presence ${presence}
             Scene: ${scene ? scene.title : 'Unknown Location'}
             Object: ${object.label} (${object.description})
             Action: ${object.type.toUpperCase()}
+            Stat Modifier: ${statBonus > 0 ? `+${statBonus}% bonus` : statPenalty < 0 ? `${statPenalty}% penalty` : 'neutral'}
 
-            GOAL: Teach Self-Accountability and Intent vs. Impact.
+            GOALS:
+            1. Narrate outcome (2-3 sentences). If stat bonus exists, show improved result. If penalty, show complication.
+            2. Highlight Intent vs Impact (what they wanted vs what actually happened to the world/others).
+            3. Show community consequences for selfish/destructive actions.
+            4. Strategic: If this was risky but successful due to high stats, acknowledge their skill.
             
-            1. Narrate the outcome (2-3 sentences).
-            2. Explicitly highlight the difference between Intent (what they wanted) and Impact (what happened to the world/others).
-            3. If the action was selfish or destructive ("recover" something not theirs), show the Community Impact (e.g., someone needed that).
-            4. If the action was thoughtful, show the support.
-
-            Also return a 'result_type' and 'community_impact' (-1, 0, 1).
+            Return: narrative, intent_vs_impact_lesson, result_type, community_impact, stat_applied (stat name if bonus/penalty was relevant).
         `;
 
         const llmRes = await base44.integrations.Core.InvokeLLM({
@@ -52,13 +79,14 @@ export default async function handler(req) {
                     narrative: { type: "string" },
                     intent_vs_impact_lesson: { type: "string", description: "Short takeaway about the impact of this choice." },
                     result_type: { type: "string", enum: ["info", "item", "damage", "nothing"] },
-                    community_impact: { type: "integer", description: "-1 for negative, 1 for positive, 0 for neutral" }
+                    community_impact: { type: "integer", description: "-1 for negative, 1 for positive, 0 for neutral" },
+                    stat_applied: { type: "string", description: "Which stat influenced the outcome (if any)" }
                 },
                 required: ["narrative", "intent_vs_impact_lesson"]
             }
         });
 
-        // 3. Update Community Sentiment
+        // 4. Update Community Sentiment
         if (llmRes.community_impact !== 0) {
              const polStates = await base44.entities.PoliticalState.filter({ character_id: character.id });
              if (polStates.length > 0) {
@@ -69,7 +97,7 @@ export default async function handler(req) {
              }
         }
 
-        // 4. Mark as exhausted if it's a single-use action
+        // 5. Mark as exhausted if it's a single-use action
         if (['recover', 'connect', 'hack', 'loot'].includes(object.type)) {
             await base44.entities.SceneInteractable.update(object.id, { status: 'exhausted' });
         }
@@ -83,5 +111,4 @@ export default async function handler(req) {
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
     }
-}
-Deno.serve(handler);
+});

@@ -1,6 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-export default async function handler(req) {
+Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
@@ -25,13 +25,25 @@ export default async function handler(req) {
             Title: "${scene.title}"
             Description: "${scene.body_text}"
 
-            Identify 2-3 specific, meaningful objects or features.
-            PHILOSOPHY: We do not use "Loot". We use "Recover" or "Salvage". Items should test the player's values (e.g. recovering data vs respecting privacy).
-            Types: 'examine' (investigate), 'interact' (use/operate), 'connect' (tech/terminals), 'recover' (take with purpose).
+            Identify 3-4 specific, meaningful objects or features that create strategic choices.
             
-            Return ONLY a JSON array of objects with keys: "label", "type", "description", "visual_prompt".
-            "visual_prompt": A description to generate a 2D sci-fi RPG asset image of this object. Retro anime style.
-            Example: [{"label": "Private Log", "type": "connect", "description": "A personal diary left open.", "visual_prompt": "A glowing holographic diary on a metal table, retro anime style, isometric"}]
+            PHILOSOPHY: 
+            - Items test player values (e.g., recovering data vs respecting privacy)
+            - Some objects offer stat advantages (e.g., terminals favor high Insight)
+            - Environmental hazards can be avoided with proper stats (Resolve, Presence)
+            
+            Types: 
+            - 'examine' (investigation, benefits from Insight 30+)
+            - 'interact' (physical manipulation, benefits from Presence 30+)
+            - 'connect' (tech/data access, benefits from Insight 40+)
+            - 'recover' (ethical salvage, benefits from Care 25+)
+            - 'hack' (security breach, benefits from Resolve 35+)
+            
+            Include at least one high-value/high-risk option and one safe investigation option.
+            
+            Return ONLY a JSON object with "interactables" array.
+            Each has: "label", "type", "description", "visual_prompt", "risk_level" (low/medium/high).
+            "visual_prompt": Description for generating a 2D sci-fi RPG asset. Retro anime style, isolated on dark background.
         `;
 
         const response = await base44.integrations.Core.InvokeLLM({
@@ -45,9 +57,10 @@ export default async function handler(req) {
                             type: "object",
                             properties: {
                                 label: { type: "string" },
-                                type: { type: "string", enum: ["examine", "interact", "connect", "recover"] },
+                                type: { type: "string", enum: ["examine", "interact", "connect", "recover", "hack"] },
                                 description: { type: "string" },
-                                visual_prompt: { type: "string" }
+                                visual_prompt: { type: "string" },
+                                risk_level: { type: "string", enum: ["low", "medium", "high"] }
                             },
                             required: ["label", "type", "description", "visual_prompt"]
                         }
@@ -91,5 +104,4 @@ export default async function handler(req) {
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
     }
-}
-Deno.serve(handler);
+});
