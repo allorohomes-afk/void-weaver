@@ -454,17 +454,30 @@ export default function SceneView() {
     window.location.href = '/CharacterSelect';
   };
 
-  const handleStartMission5 = async () => {
+  const handleStartNextMission = async () => {
     try {
-      const scenes = await base44.entities.Scene.filter({ key: 'mission5_entry' });
-      if (scenes.length > 0) {
+      // Try to find the next mission in sequence (5, 6, 7, etc.)
+      const missionKeys = ['mission5_entry', 'mission6_entry', 'mission7_entry', 'mission8_entry'];
+      let nextScene = null;
+      let missionNumber = 5;
+
+      for (const key of missionKeys) {
+        const scenes = await base44.entities.Scene.filter({ key });
+        if (scenes.length > 0) {
+          nextScene = scenes[0];
+          missionNumber = parseInt(key.match(/\d+/)[0]);
+          break;
+        }
+      }
+
+      if (nextScene) {
         await base44.entities.Character.update(character.id, {
-          current_scene_id: scenes[0].id
+          current_scene_id: nextScene.id
         });
-        toast.success("Beginning Mission 5...");
+        toast.success(`Beginning Mission ${missionNumber}...`);
         queryClient.invalidateQueries();
       } else {
-        toast.error("Mission 5 start scene not found. Please use the Debug HUD to seed content.");
+        toast.error("No next mission found. Please use the Debug HUD to seed content.");
       }
     } catch (err) {
       console.error("Failed to start mission:", err);
@@ -977,10 +990,10 @@ export default function SceneView() {
                     Return to Character Selection
                   </Button>
                   <Button 
-                    onClick={handleStartMission5}
+                    onClick={handleStartNextMission}
                     className="bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-600 hover:to-cyan-700 text-white shadow-lg shadow-cyan-900/20"
                   >
-                    Begin Mission 5 <ArrowRight className="ml-2 w-4 h-4" />
+                    Begin Next Mission <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </div>
               </div>
