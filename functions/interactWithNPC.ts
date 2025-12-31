@@ -1,111 +1,83 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
         
-        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        const { character_id, npc_id, player_input, conversation_history = [] } = await req.json();
+        const { character_id, npc_id, player_input, conversation_history } = await req.json();
 
-        // 1. Fetch Data
-        const character = await base44.entities.Character.filter({ id: character_id }).then(r => r[0]);
-        if (!character) return Response.json({ error: 'Character not found' }, { status: 404 });
+        if (!character_id || !npc_id) {
+            return Response.json({ error: 'Missing character_id or npc_id' }, { status: 400 });
+        }
 
-        const [npc, relationship, memories, politicalState, currentScene, allSkills] = await Promise.all([
-            base44.entities.NPC.filter({ id: npc_id }).then(r => r[0]),
-            base44.entities.Relationship.filter({ character_id: character_id, npc_id: npc_id }).then(r => r[0]),
-            base44.entities.NPCMemory.filter({ character_id: character_id, npc_id: npc_id }),
-            base44.entities.PoliticalState.filter({ character_id: character_id }).then(r => r[0]),
-            character.current_scene_id ? base44.entities.Scene.filter({ id: character.current_scene_id }).then(r => r[0]) : null,
-            base44.entities.Skill.list()
+        // Fetch Data
+        const [characters, npcs] = await Promise.all([
+            base44.entities.Character.filter({ id: character_id }),
+            base44.entities.NPC.filter({ id: npc_id })
         ]);
 
-        let archetypeData = null;
-        if (npc && npc.personality_archetype_id) {
-            const archetypes = await base44.entities.PersonalityArchetype.filter({ id: npc.personality_archetype_id });
-            if (archetypes.length > 0) archetypeData = archetypes[0];
+        if (characters.length === 0 || npcs.length === 0) {
+            return Response.json({ error: 'Character or NPC not found' }, { status: 404 });
         }
 
-        let archetypeData = null;
-        if (npc && npc.personality_archetype_id) {
-            const archetypes = await base44.entities.PersonalityArchetype.filter({ id: npc.personality_archetype_id });
-            if (archetypes.length > 0) archetypeData = archetypes[0];
-        }
+        const character = characters[0];
+        const npc = npcs[0];
+        const sceneId = character.current_scene_id;
 
-        if (!character || !npc) return Response.json({ error: 'Data not found' }, { status: 404 });
+        const scenes = await base44.entities.Scene.filter({ id: sceneId });
+        if (scenes.length === 0) return Response.json({ error: 'Scene not found' }, { status: 404 });
+        const currentScene = scenes[0];
 
-        // 2. Build Context String
-        const memoryContext = memories.map(m => `- [${m.memory_type.toUpperCase()}] ${m.notes} (Intensity: ${m.intensity})`).join('\n');
-        
-        const relContext = relationship ? 
-            `Trust: ${relationship.trust}, Respect: ${relationship.respect}, Safety: ${relationship.safety}` : 
-            "No prior relationship established.";
+        // Fetch Recent World Events and Player Actions
+        const [recentEvents, recentChoices] = await Promise.all([
+            base44.entities.WorldEvent.filter({ is_visible_to_public: true }, '-timestamp', 5).catch(() => []),
+            base44.entities.ChoiceHistory.filter({ character_id: character_id }, '-timestamp', 3).catch(() => [])
+        ]);
 
-        const charStats = `
-            Insight: ${character.insight}
-            Care: ${character.care}
-            Resolve: ${character.resolve}
-            Integrity: ${character.integrity}
-            Energy: ${character.masculine_energy}M / ${character.feminine_energy}F
-        `;
+        // Fetch Relationship & Memories
+        const [relationships, memories] = await Promise.all([
+            base44.entities.Relationship.filter({ character_id: character_id, npc_id: npc_id }),
+            base44.entities.NPCMemory.filter({ npc_id: npc_id, character_id: character_id }, '-timestamp', 5)
+        ]);
 
-        const politics = politicalState ? `Old Guard: ${politicalState.old_guard_pressure}, Lantern: ${politicalState.lantern_influence}` : "Unknown";
-        const sceneContext = currentScene ? `LOCATION: ${currentScene.title}\nATMOSPHERE: ${currentScene.body_text}` : "Location: Unknown";
+        const relationship = relationships[0] || null;
+        const politicalStates = await base44.entities.PoliticalState.filter({ character_id: character_id });
+        const politicalState = politicalStates[0] || null;
 
-        const isChild = (character.age || 18) < 18;
+        // Fetch Character Skills
+        const charSkills = await base44.entities.CharacterSkill.filter({ character_id: character_id, active: true });
+        const allSkills = await base44.entities.Skill.list();
+        const activeSkills = allSkills.filter(s => charSkills.some(cs => cs.skill_id === s.id));
 
-        // 3. Construct System Prompt
+        // Build System Prompt
         const systemPrompt = `
-            You are roleplaying as ${npc.name}, a ${npc.role} (${npc.archetype}) in a 1980s Anime Cyberpunk RPG.
-            TARGET AUDIENCE: ${isChild ? "CHILD (Age " + character.age + ")" : "ADULT"}.
+            You are ${npc.name}, a complex character in a cyberpunk RPG.
             
-            TONE: ${isChild ? "Friendly, Mentor-like, Simple Language, Encouraging." : "80s sci-fi anime dub, Gritty."} ${npc.voice_style ? `Specific Voice: ${npc.voice_style}` : ''}
-            PERSONALITY: ${npc.personality || "Standard cyberpunk archetype"}
+            CONTEXT:
+            Current Scene: ${currentScene.title}
+            Scene Description: ${currentScene.body_text}
+            NPC: ${npc.name} (${npc.role})
+            NPC Current Mood: ${npc.emotional_state || 'Neutral'} - This influences your tone, openness, and behavior
+            Player: ${character.name}
+            Relationship Status: Trust ${relationship?.trust || 0}, Safety ${relationship?.safety || 0}, Respect ${relationship?.respect || 0}
             
-            CURRENT SCENE CONTEXT:
-            ${sceneContext}
+            RECENT WORLD EVENTS (You are aware of these):
+            ${recentEvents.length > 0 ? recentEvents.map(e => `- ${e.title}: ${e.description}`).join('\n            ') : '- No significant events recently'}
             
-            NPC PROFILE:
-            Role: ${npc.role}
-            Archetype: ${npc.archetype}
-            Emotional State: ${npc.emotional_state || 'Neutral'}
-            ${archetypeData ? `
-            ARCHETYPE PROFILE (${archetypeData.name}):
+            PLAYER'S RECENT ACTIONS (You may reference these if relevant):
+            ${recentChoices.length > 0 ? recentChoices.map(c => `- Made a decision in scene ${c.scene_key || 'Unknown'}`).join('\n            ') : '- New arrival, no history yet'}
             
-            [PRESENTATION LAYERS]
-            SOCIAL MASK (Default): "${archetypeData.social_mask || 'Standard Role'}"
-            TRUE NATURE (Hidden): "${archetypeData.true_nature || 'Unknown'}"
-            
-            [EXPRESSION]
-            SPEAKING STYLE: ${archetypeData.speaking_style || 'Normal'}
-            VOCAL TICS: ${archetypeData.vocal_tics ? archetypeData.vocal_tics.join(', ') : 'None'}
-            PHYSICAL BEHAVIORS: ${archetypeData.behavioral_traits ? archetypeData.behavioral_traits.join(', ') : 'None'}
-            
-            [PSYCHOLOGY]
-            MOTIVATION: ${archetypeData.motivations}
-            CORE FEAR: ${archetypeData.core_fear}
-            STRESS RESPONSE: "${archetypeData.stress_response || 'Withdrawal'}" (Triggered by: ${archetypeData.stress_triggers ? archetypeData.stress_triggers.join(', ') : 'Threats'})
-            ` : ''}
-            
-            RELATIONSHIP TO PLAYER:
-            ${relContext}
-            
-            PLAYER CHARACTER STATS & DESCRIPTION:
-            ${charStats}
-            Current Emotional State: ${character.emotional_state || 'Neutral'}
-            Visuals: ${character.character_visual_prompt || "Standard uniform"}
-            Hair: ${character.hair_length || "average"}. (If "bald" or "shaved", the player has NO hair).
-            
-            SHARED MEMORIES:
-            ${memoryContext || "None"}
-            
-            POLITICAL CLIMATE:
-            ${politics}
-            
-            AVAILABLE SKILLS:
-            ${allSkills.map(s => `- ${s.name} (Key: ${s.key}): ${s.description}`).join('\n')}
+            MEMORY OF PAST CONVERSATIONS:
+            ${memories.length > 0 ? memories.slice(-3).map(m => `- ${m.summary}`).join('\n            ') : '- This is your first conversation'}
+
+            PERSONALITY:
+            ${npc.personality || 'Standard personality'}
+            Voice: ${npc.voice_style || 'neutral'}
 
             MOOD BEHAVIOR GUIDE:
             - Neutral: Professional, balanced, willing to engage
@@ -120,186 +92,158 @@ Deno.serve(async (req) => {
             Adjust your dialogue tone, length, and willingness to help based on your current mood.
             
             INSTRUCTIONS:
-            - Respond to the player's input.
-            - NO RELIGIOUS REFERENCES. Do not use terms like "god", "pray", "holy", "demon", "angel", "sacred", etc. Use tech/sci-fi metaphors instead (e.g. "void", "signal", "glitch", "code").
-            - IF DESCRIBING THE PLAYER: Ensure physical descriptions match their stats (e.g. if Bald, do not mention wind in hair).
-            - React DYNAMICALLY to the player's stats and history:
-                - High Care (>70): NPC feels safer, opens up emotionally, tone softens.
-                - Low Care (<30): NPC is guarded, cynical, or feels unheard.
-                - High Masculine Energy (>70): NPC respects directness/action, may challenge passivity.
-                - High Feminine Energy (>70): NPC responds to connection/nuance, may be overwhelmed by aggression.
-                - High Insight (>70): NPC knows they can't lie to the player; they are more direct with truth.
-            
-            - DYNAMIC PERSONA SWITCHING:
-                - IF TRUST > 50 OR INSIGHT > 60: Reveal aspects of their TRUE NATURE. Drop the SOCIAL MASK.
-                - IF SAFETY < 30 OR TONE IS AGGRESSIVE: Trigger the STRESS RESPONSE.
-                - OTHERWISE: Maintain the SOCIAL MASK.
-            
-            - Reference past memories if relevant.
-            - If the player demonstrates a specific skill through their words or approach (e.g. empathy -> relational, logic -> critical_thought), AWARD XP.
-            - If Trust is high or the conversation warrants it, you may OFFER A QUEST (a favor, investigation, or mission).
-            - SUGGEST DIALOGUE CHOICES that foster EMPATHY and SELF-REFLECTION if the context allows. Help the player explore emotional depth.
-            
-            OUTPUT JSON:
-            {
-                "dialogue": "The NPC's spoken line.",
-                "inner_thought": "Short internal monologue showing their true feeling (optional).",
-                "mood": "neutral" | "angry" | "happy" | "fearful" | "suspicious" | "tender",
-                "new_npc_emotional_state": "Neutral" | "Vulnerable" | "Resilient" | "Empathetic" | "Guarded" | "Volatile" | "Hopeful" | "Despondent",
-                "choices": [
-                    { "label": "Player response option 1", "tone": "aggressive/empathetic/analytical" },
-                    { "label": "Player response option 2", "tone": "..." }
-                ],
-                "memory_update": { "type": "respect/fear/etc", "notes": "Short summary" } (optional),
-                "skill_updates": [
-                    { "skill_key": "relational_1", "xp_amount": 10, "reason": "Showed empathy" }
-                ] (optional, max 1-2 skills),
-                "quest_offer": { "concept": "Investigate the leaking power conduit in Sector 4" } (optional, only if relevant),
-                "relationship_update": { 
-                    "trust_change": 5, 
-                    "favor_change": 0,
-                    "reason": "Player showed loyalty"
-                } (optional)
-            }
+            1. Respond naturally as ${npc.name}.
+            2. DYNAMIC: Reflect faction tensions if relevant (Political State: ${politicalState ? JSON.stringify(politicalState) : 'Unknown'}).
+            3. REFERENCE THE WORLD: Mention recent events, the scene location, or player's known actions when relevant to make dialogue feel reactive and alive.
+            4. Stay in character. Use voice/style notes if provided.
+            5. Offer 2-4 response choices for the player.
+            6. MOOD DYNAMICS: Based on player's approach (respectful, aggressive, empathetic), determine if your mood should shift:
+               - 'improve' if they're kind/respectful/helpful
+               - 'worsen' if they're rude/threatening/dismissive
+               - 'neutral' if interaction is standard
+            7. Return JSON only.
         `;
 
-        const userPrompt = player_input ? `Player says: "${player_input}"` : "Player approaches you to talk.";
+        const userMessage = player_input || "I want to talk.";
 
-        // 4. Call LLM
-        const llmRes = await base44.integrations.Core.InvokeLLM({
-            prompt: `${systemPrompt}\n\n${userPrompt}`,
+        const llmResponse = await base44.integrations.Core.InvokeLLM({
+            prompt: systemPrompt + `\n\nPlayer says: "${userMessage}"\n\nRespond in character.`,
             response_json_schema: {
                 type: "object",
                 properties: {
-                    dialogue: { type: "string" },
-                    inner_thought: { type: "string" },
-                    mood: { type: "string" },
-                    choices: { 
-                        type: "array", 
-                        items: { 
-                            type: "object", 
-                            properties: {
-                                label: { type: "string" },
-                                tone: { type: "string" }
-                            },
-                            required: ["label"]
-                        } 
+                    dialogue: {
+                        type: "string",
+                        description: "NPC's spoken response"
                     },
-                    new_npc_emotional_state: { type: "string", enum: ["Neutral", "Vulnerable", "Resilient", "Empathetic", "Guarded", "Volatile", "Hopeful", "Despondent"] },
-                    memory_update: {
-                        type: "object",
-                        properties: {
-                            type: { type: "string" },
-                            notes: { type: "string" }
-                        }
+                    inner_thought: {
+                        type: "string",
+                        description: "NPC's private thought (insight for player)"
                     },
-                    skill_updates: {
+                    mood: {
+                        type: "string",
+                        enum: ["neutral", "happy", "angry", "fearful", "suspicious", "tender"],
+                        description: "Current emotional tone"
+                    },
+                    choices: {
                         type: "array",
                         items: {
                             type: "object",
                             properties: {
-                                skill_key: { type: "string" },
-                                xp_amount: { type: "integer" },
-                                reason: { type: "string" }
+                                label: { type: "string" },
+                                tone: { type: "string", enum: ["neutral", "aggressive", "empathetic"] }
                             },
-                            required: ["skill_key", "xp_amount"]
-                        }
+                            required: ["label"]
+                        },
+                        description: "Array of possible player responses"
                     },
-                    relationship_update: {
-                        type: "object",
-                        properties: {
-                            trust_change: { type: "integer" },
-                            favor_change: { type: "integer" },
-                            reason: { type: "string" }
-                        }
+                    mood_shift: {
+                        type: "string",
+                        enum: ["improve", "worsen", "neutral"],
+                        description: "How this interaction affects your emotional state"
+                    },
+                    mood_shift_reason: {
+                        type: "string",
+                        description: "Brief explanation of why mood shifted"
+                    },
+                    suggested_emotional_state: {
+                        type: "string",
+                        enum: ["Neutral", "Vulnerable", "Resilient", "Empathetic", "Guarded", "Volatile", "Hopeful", "Despondent"],
+                        description: "Optional: Suggest a new emotional state if a major shift occurred"
                     }
                 },
-                required: ["dialogue", "choices"]
+                required: ["dialogue", "inner_thought", "choices"]
             }
         });
 
-        // 5. Update Relationship & NPC Emotional State
-        if (llmRes.new_npc_emotional_state) {
-            await base44.entities.NPC.update(npc.id, { emotional_state: llmRes.new_npc_emotional_state });
-        }
-
-        if (llmRes.relationship_update) {
-            const { trust_change = 0, favor_change = 0 } = llmRes.relationship_update;
-            if (trust_change !== 0 || favor_change !== 0) {
-                if (relationship) {
-                    await base44.entities.Relationship.update(relationship.id, {
-                        trust: (relationship.trust || 0) + trust_change,
-                        favor_balance: (relationship.favor_balance || 0) + favor_change
-                    });
-                } else {
-                    await base44.entities.Relationship.create({
-                        character_id: character.id,
-                        npc_id: npc.id,
-                        trust: trust_change,
-                        favor_balance: favor_change
-                    });
-                }
+        // Apply Mood Shift
+        const moodTransitions = {
+            improve: {
+                Guarded: 'Neutral', Volatile: 'Guarded', Despondent: 'Neutral',
+                Neutral: 'Resilient', Vulnerable: 'Hopeful', Resilient: 'Empathetic',
+                Empathetic: 'Empathetic', Hopeful: 'Resilient'
+            },
+            worsen: {
+                Empathetic: 'Neutral', Resilient: 'Neutral', Hopeful: 'Vulnerable',
+                Neutral: 'Guarded', Vulnerable: 'Despondent', Guarded: 'Volatile',
+                Volatile: 'Volatile', Despondent: 'Despondent'
             }
+        };
+
+        let newMood = npc.emotional_state || 'Neutral';
+        if (llmResponse.mood_shift && llmResponse.mood_shift !== 'neutral') {
+            const transitions = moodTransitions[llmResponse.mood_shift];
+            newMood = transitions[newMood] || newMood;
         }
 
-        // 6. Handle Memory Update (Side Effect)
-        if (llmRes.memory_update) {
-            await base44.entities.NPCMemory.create({
-                npc_id: npc.id,
-                character_id: character.id,
-                memory_type: llmRes.memory_update.type || 'neutral',
-                intensity: 1,
-                notes: llmRes.memory_update.notes
+        if (llmResponse.suggested_emotional_state) {
+            newMood = llmResponse.suggested_emotional_state;
+        }
+
+        const moodChanged = newMood !== npc.emotional_state;
+        if (moodChanged) {
+            await base44.entities.NPC.update(npc_id, { 
+                emotional_state: newMood 
             });
         }
 
-        // 6. Handle Skill Updates
-        if (llmRes.skill_updates && llmRes.skill_updates.length > 0) {
-            for (const update of llmRes.skill_updates) {
-                const existing = await base44.entities.SkillProgression.filter({ 
-                    character_id: character.id, 
-                    skill_key: update.skill_key 
-                });
+        // Update Relationship
+        let relationshipUpdate = null;
+        if (player_input) {
+            const tone = llmResponse.choices?.[0]?.tone || 'neutral';
+            let trustChange = 0;
+            if (tone === 'empathetic') trustChange = 1;
+            else if (tone === 'aggressive') trustChange = -1;
 
-                if (existing.length > 0) {
-                    await base44.entities.SkillProgression.update(existing[0].id, {
-                        current_xp: (existing[0].current_xp || 0) + update.xp_amount,
-                        last_updated_at: new Date().toISOString()
-                    });
-                } else {
-                    await base44.entities.SkillProgression.create({
-                        character_id: character.id,
-                        skill_key: update.skill_key,
-                        current_xp: update.xp_amount,
-                        level: 1,
-                        last_updated_at: new Date().toISOString()
-                    });
+            if (trustChange !== 0 && relationship) {
+                await base44.entities.Relationship.update(relationship.id, {
+                    trust: (relationship.trust || 0) + trustChange
+                });
+                relationshipUpdate = { trust_change: trustChange, reason: llmResponse.mood_shift_reason };
+            }
+        }
+
+        // Save Memory
+        if (player_input) {
+            await base44.entities.NPCMemory.create({
+                npc_id: npc_id,
+                character_id: character_id,
+                summary: `Player said: "${player_input}". I responded: "${llmResponse.dialogue.substring(0, 100)}..."`
+            });
+        }
+
+        // Skill Progress
+        let skillUpdates = [];
+        if (activeSkills.length > 0 && player_input) {
+            for (const skill of activeSkills) {
+                if (skill.category === 'relational' && llmResponse.mood_shift === 'improve') {
+                    skillUpdates.push({ skill_key: skill.key, xp_amount: 2, reason: 'Positive NPC interaction' });
                 }
             }
         }
 
-        // 7. Handle Quest Generation
+        // Quest Generation
         let newQuest = null;
-        if (llmRes.quest_offer) {
+        if (llmResponse.dialogue.toLowerCase().includes('help') && (relationship?.trust || 0) >= 20) {
             try {
-                // Call generateQuest function
-                const questRes = await base44.functions.invoke('generateQuest', {
-                    character_id: character.id,
-                    npc_id: npc.id,
-                    concept: llmRes.quest_offer.concept,
-                    source: "NPC Interaction"
+                const questRes = await base44.functions.invoke('generateQuest', { 
+                    character_id: character_id, 
+                    npc_id: npc_id 
                 });
-                
-                if (questRes.data && questRes.data.status === 'success') {
-                    newQuest = questRes.data.quest;
-                }
+                newQuest = questRes.data.quest;
             } catch (err) {
-                console.error("Failed to generate quest:", err);
+                console.error("Quest generation failed", err);
             }
         }
 
         return Response.json({
-            ...llmRes,
+            dialogue: llmResponse.dialogue,
+            inner_thought: llmResponse.inner_thought,
+            mood: newMood,
+            mood_changed: moodChanged,
+            mood_shift_reason: llmResponse.mood_shift_reason,
+            choices: llmResponse.choices,
+            skill_updates: skillUpdates,
+            relationship_update: relationshipUpdate,
             new_quest: newQuest
         });
 
