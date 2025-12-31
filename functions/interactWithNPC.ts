@@ -243,6 +243,34 @@ Deno.serve(async (req) => {
         if (llmResponse.resonance_change) {
             const newResonance = Math.max(0, Math.min(100, resonanceFlow + llmResponse.resonance_change));
             await base44.entities.Character.update(character.id, { resonance_flow: newResonance });
+            
+            // Update Faction Reputation if NPC is faction-affiliated
+            if (npc.faction_id && Math.abs(llmResponse.resonance_change) >= 5) {
+                const factionStatuses = await base44.entities.CharacterFactionStatus.filter({
+                    character_id: character.id,
+                    faction_id: npc.faction_id
+                });
+                
+                if (factionStatuses.length > 0) {
+                    const currentRep = factionStatuses[0].resonance_reputation || 0;
+                    const newRep = Math.max(0, Math.min(100, currentRep + llmResponse.resonance_change));
+                    const events = factionStatuses[0].reputation_events || [];
+                    
+                    await base44.entities.CharacterFactionStatus.update(factionStatuses[0].id, {
+                        resonance_reputation: newRep,
+                        reputation_events: [...events, `${llmResponse.resonance_change > 0 ? 'Compassionate' : 'Harsh'} interaction with ${npc.name}`].slice(-5)
+                    });
+                } else {
+                    // Create faction status if doesn't exist
+                    await base44.entities.CharacterFactionStatus.create({
+                        character_id: character.id,
+                        faction_id: npc.faction_id,
+                        alignment: 0,
+                        resonance_reputation: Math.max(0, llmResponse.resonance_change),
+                        reputation_events: [`Initial ${llmResponse.resonance_change > 0 ? 'positive' : 'negative'} encounter with ${npc.name}`]
+                    });
+                }
+            }
         }
 
         // Save Memory

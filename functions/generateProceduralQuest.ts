@@ -9,21 +9,43 @@ Deno.serve(async (req) => {
         const { character_id } = await req.json();
 
         // 1. Fetch World State
-        const [character, factions, impacts] = await Promise.all([
+        const [character, factions, impacts, factionStatuses] = await Promise.all([
             base44.entities.Character.filter({ id: character_id }).then(r => r[0]),
             base44.entities.Faction.list(),
-            base44.entities.WorldImpactNode.filter({ character_id }, '-created_date', 5)
+            base44.entities.WorldImpactNode.filter({ character_id }, '-created_date', 5),
+            base44.entities.CharacterFactionStatus.filter({ character_id })
         ]);
+        
+        const resonanceFlow = character.resonance_flow || 50;
 
+        // 2. Determine Quest Type Based on Resonance Flow
+        const highResonance = resonanceFlow >= 70;
+        const factionReps = factionStatuses.map(fs => {
+            const faction = factions.find(f => f.id === fs.faction_id);
+            return { name: faction?.name || 'Unknown', resonance_reputation: fs.resonance_reputation || 0 };
+        });
+        
         // 2. Prompt for Procedural Quest
         const prompt = `
             Generate a procedural "Micro-Quest" for a Cyberpunk RPG.
             
             Character: ${character.name} (Role: Void Weaver/Agent)
+            Resonance Flow: ${resonanceFlow}/100 (${highResonance ? 'HIGH - Known for compassion & diplomacy' : 'Moderate/Low'})
             Factions: ${factions.map(f => f.name).join(', ')}
+            Faction Reputations: ${factionReps.map(fr => `${fr.name}: ${fr.resonance_reputation} compassion`).join(', ')}
             Recent World Impacts: ${impacts.map(i => i.title).join(', ')}
             
-            Goal: Create a small, actionable mission that fits the current world state.
+            ${highResonance ? `
+            CRITICAL: High Resonance Flow unlocks DIPLOMATIC & COLLABORATIVE quests.
+            - Offer mediation/peacekeeping missions
+            - Requests to mentor vulnerable NPCs
+            - Collaborative investigations requiring empathy
+            - Faction leaders seeking player as neutral arbiter
+            ` : `
+            Standard Gig: Combat/Investigation/Infiltration task.
+            `}
+            
+            Goal: Create a small, actionable mission that fits the current world state and player's reputation.
             It should be a "Gig" or "Task" offered by a faction or discovered via observation.
             
             Output JSON:
@@ -31,7 +53,8 @@ Deno.serve(async (req) => {
                 "title": "Quest Title",
                 "description": "Brief briefing...",
                 "source_faction_name": "One of the factions or 'Independent'",
-                "unlock_condition": "Reason it unlocked (e.g. 'Due to rising tension in...')"
+                "unlock_condition": "Reason it unlocked (e.g. 'Due to rising tension in...' or 'Due to your reputation for compassion...')",
+                "quest_type": "diplomatic" | "combat" | "investigation" | "mentorship" | "standard"
             }
         `;
 
@@ -43,7 +66,8 @@ Deno.serve(async (req) => {
                     title: { type: "string" },
                     description: { type: "string" },
                     source_faction_name: { type: "string" },
-                    unlock_condition: { type: "string" }
+                    unlock_condition: { type: "string" },
+                    quest_type: { type: "string", enum: ["diplomatic", "combat", "investigation", "mentorship", "standard"] }
                 },
                 required: ["title", "description"]
             }
