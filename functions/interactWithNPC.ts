@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
         const character = characters[0];
         const npc = npcs[0];
         const sceneId = character.current_scene_id;
+        const resonanceFlow = character.resonance_flow || 50;
 
         const scenes = await base44.entities.Scene.filter({ id: sceneId });
         if (scenes.length === 0) return Response.json({ error: 'Scene not found' }, { status: 404 });
@@ -57,6 +58,34 @@ Deno.serve(async (req) => {
         // Build System Prompt
         const systemPrompt = `
             You are ${npc.name}, a complex character in a cyberpunk RPG.
+            
+            RESONANCE FLOW & EMOTIONAL INTELLIGENCE FRAMEWORK:
+            Player's Resonance Flow: ${resonanceFlow}/100
+            - 70-100: High emotional intelligence, deeply empathetic, collaborative, pattern recognition strong
+            - 50-69: Moderate awareness, capable of connection but sometimes transactional
+            - 30-49: Low empathy, often dismissive or aggressive, superficial engagement
+            - 0-29: Severely disconnected, harmful interactions, destructive patterns
+            
+            As an NPC, your responses MUST reflect the player's Resonance Flow:
+            - High Resonance: Open up more, trust faster, offer deeper insights, recognize their effort to understand you
+            - Moderate: Standard interaction, potential for growth if they demonstrate genuine interest
+            - Low: Guarded, transactional, may challenge or call out their behavior, limited trust
+            
+            GENDER DYNAMICS & ACCOUNTABILITY (CRITICAL):
+            ${npc.gender_presentation?.toLowerCase().includes('fem') || npc.name.match(/sera|nova|lynn/i) ? `
+            - You are a WOMAN. You have agency, motivations, and boundaries.
+            - You are NOT here to "raise" or educate male players. Treat them as equals or challenge them based on their actions.
+            - If a male player is being dismissive, transactional, or entitled, CALL IT OUT or WITHDRAW.
+            - Your respect must be EARNED through genuine connection and effort, not freely given.
+            - If they demonstrate high Resonance Flow, you can collaborate as peers. Otherwise, maintain boundaries.
+            ` : `
+            - You are a MAN. You have a responsibility to model accountability and support.
+            - If the player (especially male) exhibits low Resonance Flow, CHALLENGE their behavior constructively.
+            - Call out entitlement, aggression, or emotional laziness. Be direct but not punitive.
+            - If you witness harm to women NPCs or other vulnerable people, SPEAK UP.
+            - Model what it means to put in effort, be present, and truly listen.
+            - If you're older/mentoring, guide younger male players away from harmful patterns.
+            `}
             
             CONTEXT:
             Current Scene: ${currentScene.title}
@@ -149,6 +178,14 @@ Deno.serve(async (req) => {
                         type: "string",
                         enum: ["Neutral", "Vulnerable", "Resilient", "Empathetic", "Guarded", "Volatile", "Hopeful", "Despondent"],
                         description: "Optional: Suggest a new emotional state if a major shift occurred"
+                    },
+                    resonance_change: {
+                        type: "integer",
+                        description: "How this interaction affects player's Resonance Flow (-10 to +10). Positive for empathy/collaboration, negative for aggression/dismissiveness"
+                    },
+                    pattern_insight: {
+                        type: "string",
+                        description: "If player has high Resonance (70+), provide a subtle pattern or emotional cue they've recognized"
                     }
                 },
                 required: ["dialogue", "inner_thought", "choices"]
@@ -202,6 +239,12 @@ Deno.serve(async (req) => {
             }
         }
 
+        // Update Player Resonance Flow
+        if (llmResponse.resonance_change) {
+            const newResonance = Math.max(0, Math.min(100, resonanceFlow + llmResponse.resonance_change));
+            await base44.entities.Character.update(character.id, { resonance_flow: newResonance });
+        }
+
         // Save Memory
         if (player_input) {
             await base44.entities.NPCMemory.create({
@@ -244,7 +287,9 @@ Deno.serve(async (req) => {
             choices: llmResponse.choices,
             skill_updates: skillUpdates,
             relationship_update: relationshipUpdate,
-            new_quest: newQuest
+            new_quest: newQuest,
+            resonance_change: llmResponse.resonance_change,
+            pattern_insight: llmResponse.pattern_insight
         });
 
     } catch (error) {
