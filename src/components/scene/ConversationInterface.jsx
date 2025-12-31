@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Loader2, MessageSquare, X, Brain, Heart, Shield, Scroll } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, MessageSquare, X, Brain, Heart, Shield, Scroll, Meh, AlertTriangle, Smile, Frown, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from "sonner";
 
@@ -9,7 +10,8 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
     const [history, setHistory] = useState([]);
     const [currentChoices, setCurrentChoices] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [mood, setMood] = useState('neutral');
+    const [mood, setMood] = useState(npc.emotional_state || 'Neutral');
+    const [moodChangeAlert, setMoodChangeAlert] = useState(null);
     const scrollRef = useRef(null);
 
     const startConversation = async () => {
@@ -50,7 +52,17 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
 
         setHistory(prev => [...prev, newExchange]);
         setCurrentChoices(data.choices || []);
-        setMood(data.mood || 'neutral');
+        
+        if (data.mood_changed) {
+            setMood(data.mood);
+            setMoodChangeAlert({
+                direction: data.mood_shift_reason?.toLowerCase().includes('improve') || data.mood === 'Resilient' || data.mood === 'Empathetic' ? 'improve' : 'worsen',
+                reason: data.mood_shift_reason
+            });
+            setTimeout(() => setMoodChangeAlert(null), 4000);
+        } else {
+            setMood(data.mood || mood);
+        }
 
         if (data.skill_updates && data.skill_updates.length > 0) {
             data.skill_updates.forEach(update => {
@@ -107,16 +119,32 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
         }
     };
 
-    // Helper to get mood color
+    const getMoodIcon = (m) => {
+        const icons = {
+            Neutral: <Meh className="w-3 h-3" />,
+            Vulnerable: <Heart className="w-3 h-3" />,
+            Resilient: <Shield className="w-3 h-3" />,
+            Empathetic: <Sparkles className="w-3 h-3" />,
+            Guarded: <AlertTriangle className="w-3 h-3" />,
+            Volatile: <AlertTriangle className="w-3 h-3" />,
+            Hopeful: <Smile className="w-3 h-3" />,
+            Despondent: <Frown className="w-3 h-3" />
+        };
+        return icons[m] || <Meh className="w-3 h-3" />;
+    };
+
     const getMoodColor = (m) => {
-        switch(m) {
-            case 'angry': return 'text-red-400 border-red-500/50 bg-red-950/30';
-            case 'happy': return 'text-amber-400 border-amber-500/50 bg-amber-950/30';
-            case 'fearful': return 'text-purple-400 border-purple-500/50 bg-purple-950/30';
-            case 'suspicious': return 'text-orange-400 border-orange-500/50 bg-orange-950/30';
-            case 'tender': return 'text-pink-400 border-pink-500/50 bg-pink-950/30';
-            default: return 'text-indigo-300 border-indigo-500/50 bg-indigo-950/30';
-        }
+        const colors = {
+            Neutral: 'text-slate-400 border-slate-500/50',
+            Vulnerable: 'text-pink-400 border-pink-500/50',
+            Resilient: 'text-green-400 border-green-500/50',
+            Empathetic: 'text-blue-400 border-blue-500/50',
+            Guarded: 'text-amber-400 border-amber-500/50',
+            Volatile: 'text-red-400 border-red-500/50',
+            Hopeful: 'text-cyan-400 border-cyan-500/50',
+            Despondent: 'text-gray-400 border-gray-500/50'
+        };
+        return colors[m] || 'text-slate-400 border-slate-500/50';
     };
 
     return (
@@ -140,9 +168,10 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
                         <div>
                             <h3 className="font-bold text-white flex items-center gap-2">
                                 {npc.name}
-                                <span className={`text-xs px-1.5 py-0.5 rounded border uppercase ${getMoodColor(mood)}`}>
+                                <Badge variant="outline" className={`text-[10px] ${getMoodColor(mood)} flex items-center gap-1`}>
+                                    {getMoodIcon(mood)}
                                     {mood}
-                                </span>
+                                </Badge>
                             </h3>
                             <div className="flex items-center gap-3 text-xs text-slate-400">
                                 <span>{npc.role}</span>
@@ -157,6 +186,23 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
                         <X className="w-5 h-5" />
                     </Button>
                 </div>
+
+                {/* Mood Change Alert */}
+                {moodChangeAlert && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className={`mx-4 mt-2 p-2 rounded-lg border flex items-center gap-2 text-xs ${
+                            moodChangeAlert.direction === 'improve' 
+                                ? 'bg-green-950/30 border-green-500/30 text-green-300'
+                                : 'bg-red-950/30 border-red-500/30 text-red-300'
+                        }`}
+                    >
+                        {moodChangeAlert.direction === 'improve' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                        <span>{moodChangeAlert.reason}</span>
+                    </motion.div>
+                )}
 
                 {/* Chat History */}
                 <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-900 to-slate-950">
