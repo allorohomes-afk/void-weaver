@@ -456,16 +456,35 @@ export default function SceneView() {
 
   const handleStartNextMission = async () => {
     try {
-      // Try to find the next mission in sequence (5, 6, 7, etc.)
+      // Get character's choice history to determine which missions they've completed
+      const choiceHistory = await base44.entities.ChoiceHistory.filter({ 
+        character_id: character.id 
+      }, '-created_date', 100);
+
+      // Find which chapter endings they've reached
+      const completedChapters = new Set();
+      for (const choice of choiceHistory) {
+        const scenes = await base44.entities.Scene.filter({ id: choice.scene_id });
+        if (scenes.length > 0 && scenes[0].key?.includes('chapter') && scenes[0].key?.includes('end')) {
+          const chapterNum = parseInt(scenes[0].key.match(/\d+/)?.[0] || '0');
+          if (chapterNum > 0) completedChapters.add(chapterNum);
+        }
+      }
+
+      // Determine next mission to start
       const missionKeys = ['mission5_entry', 'mission6_entry', 'mission7_entry', 'mission8_entry'];
       let nextScene = null;
       let missionNumber = 5;
 
       for (const key of missionKeys) {
+        const checkMissionNum = parseInt(key.match(/\d+/)[0]);
+        // Skip if this chapter was already completed
+        if (completedChapters.has(checkMissionNum)) continue;
+
         const scenes = await base44.entities.Scene.filter({ key });
         if (scenes.length > 0) {
           nextScene = scenes[0];
-          missionNumber = parseInt(key.match(/\d+/)[0]);
+          missionNumber = checkMissionNum;
           break;
         }
       }
