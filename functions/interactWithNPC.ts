@@ -40,11 +40,18 @@ Deno.serve(async (req) => {
             base44.entities.ChoiceHistory.filter({ character_id: character_id }, '-timestamp', 3).catch(() => [])
         ]);
 
-        // Fetch Relationship & Memories
-        const [relationships, memories] = await Promise.all([
+        // Fetch Relationship & Social Ledger
+        const [relationships, socialLedger, recentWorldEvents] = await Promise.all([
             base44.entities.Relationship.filter({ character_id: character_id, npc_id: npc_id }),
-            base44.entities.NPCMemory.filter({ npc_id: npc_id, character_id: character_id }, '-timestamp', 5)
+            base44.entities.NPCMemory.filter({ npc_id: npc_id, character_id: character_id, can_reference_in_dialogue: true }, '-created_date', 8),
+            base44.entities.WorldEvent.filter({ is_visible_to_public: true }, '-timestamp', 3).catch(() => [])
         ]);
+
+        // Categorize memories for context
+        const significantMemories = socialLedger.filter(m => m.intensity >= 6);
+        const recentMemories = socialLedger.slice(0, 3);
+        const resonanceShifts = socialLedger.filter(m => m.memory_type === 'resonance_shift');
+        const factionEvents = socialLedger.filter(m => m.memory_type === 'faction_event' && m.related_faction_id === npc.faction_id);
 
         const relationship = relationships[0] || null;
         const politicalStates = await base44.entities.PoliticalState.filter({ character_id: character_id });
@@ -95,14 +102,36 @@ Deno.serve(async (req) => {
             Player: ${character.name}
             Relationship Status: Trust ${relationship?.trust || 0}, Safety ${relationship?.safety || 0}, Respect ${relationship?.respect || 0}
             
-            RECENT WORLD EVENTS (You are aware of these):
-            ${recentEvents.length > 0 ? recentEvents.map(e => `- ${e.title}: ${e.description}`).join('\n            ') : '- No significant events recently'}
+            SOCIAL LEDGER - YOUR MEMORY OF THIS PERSON:
+            ${socialLedger.length > 0 ? `
+            Recent Interactions (Last 3):
+            ${recentMemories.map(m => `- [${m.memory_type}] ${m.summary} (Impact: ${m.emotional_impact}, Intensity: ${m.intensity}/10)`).join('\n            ')}
             
-            PLAYER'S RECENT ACTIONS (You may reference these if relevant):
-            ${recentChoices.length > 0 ? recentChoices.map(c => `- Made a decision in scene ${c.scene_key || 'Unknown'}`).join('\n            ') : '- New arrival, no history yet'}
+            ${significantMemories.length > 0 ? `
+            Significant Memories (High Impact):
+            ${significantMemories.map(m => `- ${m.summary} [${m.tags?.join(', ') || 'untagged'}]`).join('\n            ')}
+            ` : ''}
             
-            MEMORY OF PAST CONVERSATIONS:
-            ${memories.length > 0 ? memories.slice(-3).map(m => `- ${m.summary}`).join('\n            ') : '- This is your first conversation'}
+            ${resonanceShifts.length > 0 ? `
+            Observed Character Evolution:
+            - You've witnessed their Resonance Flow shift from ${resonanceShifts[0]?.player_resonance_at_time || 50} to ${resonanceFlow}
+            - Pattern: ${resonanceFlow > (resonanceShifts[0]?.player_resonance_at_time || 50) ? 'Growing in empathy and wisdom' : 'Becoming more disconnected'}
+            ` : ''}
+            
+            ${factionEvents.length > 0 ? `
+            Faction-Related Memories:
+            ${factionEvents.slice(0, 2).map(m => `- ${m.summary}`).join('\n            ')}
+            ` : ''}
+            ` : '- This is your first meeting. You have no history with this person yet.'}
+            
+            WORLD CONTEXT (Events you're aware of):
+            ${recentWorldEvents.length > 0 ? recentWorldEvents.map(e => `- ${e.title}: ${e.content}`).join('\n            ') : '- Relatively quiet in the city recently'}
+            
+            CRITICAL INSTRUCTION: Reference specific entries from your Social Ledger when appropriate.
+            - If they previously showed compassion, acknowledge it: "Last time you helped that kid, I noticed..."
+            - If you witnessed their Resonance shift, comment: "You seem different than when we first met..."
+            - If faction events involved them, bring it up: "My people are still talking about what you did..."
+            - Make dialogue feel LIVED-IN and SPECIFIC, not generic.
 
             PERSONALITY:
             ${npc.personality || 'Standard personality'}
@@ -273,13 +302,51 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Save Memory
+        // Save Memory to Social Ledger
         if (player_input) {
+            const playerTone = llmResponse.choices?.[0]?.tone || 'neutral';
+            const tags = [];
+
+            if (playerTone === 'empathetic') tags.push('compassionate', 'understanding');
+            if (playerTone === 'aggressive') tags.push('hostile', 'confrontational');
+            if (llmResponse.resonance_change > 5) tags.push('growth-moment');
+            if (llmResponse.resonance_change < -5) tags.push('harmful-interaction');
+
+            const emotionalImpact = llmResponse.mood_shift === 'improve' ? 'positive' : 
+                                   llmResponse.mood_shift === 'worsen' ? 'negative' : 'neutral';
+
+            const intensity = Math.abs(llmResponse.resonance_change || 0) >= 10 ? 8 :
+                             Math.abs(llmResponse.resonance_change || 0) >= 5 ? 5 : 3;
+
             await base44.entities.NPCMemory.create({
                 npc_id: npc_id,
                 character_id: character_id,
-                summary: `Player said: "${player_input}". I responded: "${llmResponse.dialogue.substring(0, 100)}..."`
+                memory_type: 'conversation',
+                summary: `${character.name}: "${player_input.substring(0, 80)}..." | My response: "${llmResponse.dialogue.substring(0, 80)}..."`,
+                emotional_impact: emotionalImpact,
+                intensity: intensity,
+                player_resonance_at_time: resonanceFlow,
+                tags: tags,
+                scene_id: sceneId,
+                related_faction_id: npc.faction_id,
+                can_reference_in_dialogue: true
             });
+
+            // Create special memory for significant Resonance shifts
+            if (Math.abs(llmResponse.resonance_change || 0) >= 10) {
+                await base44.entities.NPCMemory.create({
+                    npc_id: npc_id,
+                    character_id: character_id,
+                    memory_type: 'resonance_shift',
+                    summary: `Witnessed ${character.name} ${llmResponse.resonance_change > 0 ? 'demonstrate profound empathy' : 'act with callous disregard'}. Their inner light ${llmResponse.resonance_change > 0 ? 'grew stronger' : 'dimmed'}.`,
+                    emotional_impact: llmResponse.resonance_change > 0 ? 'positive' : 'negative',
+                    intensity: 9,
+                    player_resonance_at_time: resonanceFlow,
+                    tags: [llmResponse.resonance_change > 0 ? 'transformation-positive' : 'transformation-negative', 'pivotal-moment'],
+                    scene_id: sceneId,
+                    can_reference_in_dialogue: true
+                });
+            }
         }
 
         // Skill Progress
