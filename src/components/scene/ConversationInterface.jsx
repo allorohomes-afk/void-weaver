@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import VoicePlayer from '@/components/voice/VoicePlayer';
 import { Loader2, MessageSquare, X, Brain, Heart, Shield, Scroll, Meh, AlertTriangle, Smile, Frown, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from "sonner";
@@ -40,14 +41,30 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
         }
     }, [history, isLoading]);
 
-    const handleResponse = (data) => {
+    const handleResponse = async (data) => {
         if (!data) return;
+
+        // Generate voice for NPC dialogue
+        let audioUrl = null;
+        try {
+            const voiceRes = await base44.functions.invoke('generateVoiceLine', {
+                text: data.dialogue,
+                npc_id: npc.id,
+                emotion: data.mood || 'Neutral'
+            });
+            if (voiceRes.data?.audio_url) {
+                audioUrl = voiceRes.data.audio_url;
+            }
+        } catch (err) {
+            console.error("Voice generation failed:", err);
+        }
 
         const newExchange = {
             role: 'npc',
             text: data.dialogue,
             thought: data.inner_thought,
-            mood: data.mood
+            mood: data.mood,
+            audioUrl: audioUrl
         };
 
         setHistory(prev => [...prev, newExchange]);
@@ -222,7 +239,18 @@ export default function ConversationInterface({ characterId, npc, onClose }) {
                             >
                                 {msg.text}
                             </div>
-                            
+
+                            {/* Voice Player for NPC */}
+                            {msg.role === 'npc' && msg.audioUrl && (
+                                <div className="mt-2">
+                                    <VoicePlayer 
+                                        audioUrl={msg.audioUrl} 
+                                        text="Play voice" 
+                                        autoPlay={idx === history.length - 1}
+                                    />
+                                </div>
+                            )}
+
                             {/* NPC Inner Thought (Contextual Insight) */}
                             {msg.role === 'npc' && msg.thought && (
                                 <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 italic max-w-[75%]">

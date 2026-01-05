@@ -135,13 +135,34 @@ export const prepareSceneCinematic = async (characterId, sceneId) => {
         return null; 
     }
 
-    // 5. Create Record
+    // 5. Generate Voice Narration (Optional)
+    let audioUrl = null;
+    try {
+        const scenes = await base44.entities.Scene.filter({ id: sceneId });
+        if (scenes[0]?.body_text) {
+            // Extract first 2-3 sentences for narration
+            const narrativeText = scenes[0].body_text.split('.').slice(0, 2).join('.') + '.';
+            const voiceRes = await base44.functions.invoke('generateVoiceLine', {
+                text: narrativeText,
+                character_id: characterId,
+                emotion: character.emotional_state || 'Neutral'
+            });
+            if (voiceRes.data?.audio_url) {
+                audioUrl = voiceRes.data.audio_url;
+            }
+        }
+    } catch (err) {
+        console.error("Voice generation failed (non-critical):", err);
+        // Continue without audio
+    }
+
+    // 6. Create Record
     if (videoUrl) {
         await base44.entities.SceneCinematics.create({
             scene_id: sceneId,
             character_id: characterId,
             video_url: videoUrl,
-            audio_url: null,
+            audio_url: audioUrl,
             prompt_used: video_prompt,
             portrait_version: currentVersion
         });
@@ -149,7 +170,7 @@ export const prepareSceneCinematic = async (characterId, sceneId) => {
 
     return {
         video_url: videoUrl,
-        audio_url: null
+        audio_url: audioUrl
     };
 };
 

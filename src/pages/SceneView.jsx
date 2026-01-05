@@ -9,6 +9,7 @@ import QuestLog from '../components/scene/QuestLog';
 import ChoiceButton from '../components/scene/ChoiceButton';
 import ConversationInterface from '../components/scene/ConversationInterface';
 import InteractiveEnvironment from '../components/scene/InteractiveEnvironment';
+import VoicePlayer from '../components/voice/VoicePlayer';
 import { Loader2, ArrowLeft, Play, Pause, ArrowRight, CheckCircle, AlertCircle, Search, Eye, Brain, Scan, MousePointer2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
@@ -792,19 +793,14 @@ export default function SceneView() {
                         alt="Scene Cinematic" 
                         className="w-full h-auto object-cover"
                       />
-                      {/* Placeholder for actual video player interaction */}
-                      <div className="absolute bottom-4 right-4">
-                          {cinematicData.audio_url && (
-                             <Button 
-                                size="icon" 
-                                variant="secondary" 
-                                className="rounded-full bg-slate-900/80 hover:bg-slate-900 text-white"
-                                onClick={() => setIsPlaying(!isPlaying)}
-                             >
-                                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                             </Button>
-                          )}
-                      </div>
+                      {cinematicData.audio_url && (
+                          <div className="absolute bottom-4 right-4">
+                             <VoicePlayer 
+                                audioUrl={cinematicData.audio_url} 
+                                autoPlay={false}
+                             />
+                          </div>
+                      )}
                   </div>
               )}
 
