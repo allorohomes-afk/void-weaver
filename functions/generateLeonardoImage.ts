@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
             num_images: 1,
             modelId: "ac614f96-1082-45bf-be9d-757f2d31c174", // DreamShaper v7
             init_image_id: initImageId,
-            init_strength: initImageId ? 0.35 : undefined, // Moderate strength to keep likeness
+            init_strength: initImageId ? 0.5 : undefined, // Higher strength for better age/uniform consistency
             controlnets: controlnets.length > 0 ? controlnets : undefined
         };
 

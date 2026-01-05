@@ -79,32 +79,35 @@ Deno.serve(async (req) => {
         }
 
         const uniformDescriptions = {
-          streetops: "Dark charcoal synth-leather jacket with neon piping, reinforced shoulder pads, utility belt with glowing data-ports, and heavy-duty combat boots. Think 80s anime space marine.",
-          starfleet: "Crisp, azure-blue tunic with gold braiding, high collar, polished chrome insignia, white gloves, and sleek, form-fitting trousers. Inspired by classic sci-fi captains.",
-          infiltrationsuit: "Jet-black chameleon-weave stealth suit, minimal reflective surfaces, integrated comms unit, and low-profile tactical boots. Sleek, sharp, and designed for shadows.",
-          academy: "Void Weaver Academy cadet uniform: navy blue blazer with silver trim, white collared shirt, academy crest patch, comfortable slacks, and polished shoes. Clean, age-appropriate school uniform inspired by classic anime academies."
+          streetops: "UNIFORM: Dark charcoal synth-leather jacket with NEON CYAN PIPING, reinforced shoulder pads, utility belt with glowing blue data-ports, heavy-duty combat boots. Military-grade tactical gear. MUST BE CONSISTENT: same jacket, same neon piping pattern, same boots in every image.",
+          starfleet: "UNIFORM: Crisp azure-blue tunic with GOLD BRAIDING on shoulders and cuffs, high mandarin collar, polished chrome insignia on chest, white dress gloves, sleek form-fitting navy trousers, black boots. MUST BE CONSISTENT: same blue color (#0066CC), same gold pattern, same insignia placement.",
+          infiltrationsuit: "UNIFORM: Jet-black chameleon-weave stealth suit covering entire body, minimal reflective surfaces, integrated silver comms unit on collar, low-profile tactical boots. MUST BE CONSISTENT: same all-black design, same silver accent placement, same sleek silhouette.",
+          academy: "UNIFORM: Void Weaver Academy cadet uniform - navy blue (#001F3F) blazer with SILVER TRIM on lapels, crisp white collared shirt, academy crest patch (silver phoenix) on left chest, gray slacks, polished black shoes. MUST BE CONSISTENT: same navy blazer, same silver trim placement, same crest design."
         };
         const uniformDesc = uniformDescriptions[outfitStyle] || uniformDescriptions.streetops;
 
         // Construct the prompt enforcing consistency
         let prompt = `
         Subject: The Void Weaver (central character).
-        Reference Character: Use the provided reference image URL for face structure.
+        Reference Character: Use the provided reference image URL for face structure and EXACT AGE APPEARANCE.
         PHYSICAL TRAITS: ${physicalDescription}
-        Outfit: ${uniformDesc}
+        ${uniformDesc}
         
         Scene Context: ${contextText}
         Role/Action: ${roleHint}
         Tone: ${toneText}
         Skill Vibes/Modifiers: ${skillModifiers}
 
-        CRITICAL INSTRUCTIONS:
+        CRITICAL CONSISTENCY REQUIREMENTS:
         - The Void Weaver MUST be the clear central figure.
-        - The Void Weaver MUST match the physical traits (especially HAIR/BALDNESS) and the described uniform.
-        - If other uniformed characters appear, they must have clearly different faces/hair.
+        - AGE CONSISTENCY: Character MUST appear exactly ${age} years old. No aging up or down. Match reference image age precisely.
+        - UNIFORM CONSISTENCY: Character MUST wear the EXACT uniform described above with IDENTICAL colors, patterns, and design details. Same uniform every time.
+        - FACE CONSISTENCY: Match the reference image facial structure, hair, and features EXACTLY.
+        - If other uniformed characters appear, they must have clearly different faces/hair AND different uniform styles.
         - Style: Vintage 1980s-90s anime space opera, cel-animated, hand-painted watercolor backgrounds.
         - Colors: Dark navy/slate backgrounds, neon cyan/magenta highlights.
         - Vibe: High contrast, sharp lines, retro-future technology.
+        - RENDER QUALITY: Sharp details on uniform elements, clear age-appropriate features, consistent lighting.
         `;
 
         if (portraitUrl) {
@@ -126,6 +129,9 @@ Deno.serve(async (req) => {
         } else {
             negativePrompt += ", child, baby, toddler, young child";
         }
+        
+        // Add uniform consistency negative prompts
+        negativePrompt += ", different outfit, wrong uniform, casual clothes, civilian attire, inconsistent costume, mixed uniforms, wrong clothing style";
         
         negativePrompt = negativePrompt || undefined;
 
