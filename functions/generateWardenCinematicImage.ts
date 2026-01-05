@@ -160,25 +160,40 @@ Deno.serve(async (req) => {
         let provider = 'leonardo';
         
         // Attempt Leonardo Generation
-        console.log(`[Leonardo] Attempting generation with ${refUrls.length} reference(s)...`);
-        const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
-            prompt,
-            negative_prompt: negativePrompt,
-            width: 1280, 
-            height: 720,
-            init_image_url: refUrls[0] || portraitUrl,
-            init_strength: 0.5
-        });
-        
-        console.log("[Leonardo] Response:", JSON.stringify(leoRes.data));
-        
-        if (leoRes.data && !leoRes.data.error && leoRes.data.url) {
-            imageUrl = leoRes.data.url;
-            console.log("[Leonardo] ✓ Generation successful");
-        } else {
-            const errorMsg = leoRes.data?.error || "Unknown Leonardo error";
-            console.error("[Leonardo] ✗ Generation failed:", errorMsg);
-            throw new Error(`Leonardo AI Error: ${errorMsg}`);
+        try {
+            console.log(`[Leonardo] Attempting generation with ${refUrls.length} reference(s)...`);
+            const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
+                prompt,
+                negative_prompt: negativePrompt,
+                width: 1280, 
+                height: 720,
+                init_image_url: refUrls[0] || portraitUrl,
+                init_strength: 0.5
+            });
+            
+            console.log("[Leonardo] Response:", JSON.stringify(leoRes.data));
+            
+            if (leoRes.data && !leoRes.data.error && leoRes.data.url) {
+                imageUrl = leoRes.data.url;
+                console.log("[Leonardo] ✓ Generation successful");
+            } else {
+                const errorMsg = leoRes.data?.error || "Unknown Leonardo error";
+                console.error("[Leonardo] ✗ Generation failed:", errorMsg);
+                throw new Error(errorMsg);
+            }
+        } catch (leoError) {
+            console.error("[Leonardo] ✗ FAILED, falling back to DALL-E:", leoError.message);
+            provider = 'dalle';
+            try {
+                const dalleRes = await base44.integrations.Core.GenerateImage({
+                    prompt: prompt + " Anime style, cinematic, high quality, 1980s retro anime aesthetic." 
+                });
+                imageUrl = dalleRes.url;
+                console.log("[DALL-E] ✓ Fallback successful");
+            } catch (dalleError) {
+                console.error("[DALL-E] ✗ Fallback also failed:", dalleError);
+                throw new Error("All image generation methods failed");
+            }
         }
 
         return Response.json({ 
