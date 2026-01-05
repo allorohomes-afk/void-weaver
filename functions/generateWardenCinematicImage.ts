@@ -201,7 +201,8 @@ Deno.serve(async (req) => {
             portrait_version: character.portrait_reference_version || 1,
             provider: provider,
             reference_images_count: refUrls.length,
-            error: provider === 'dalle' ? "Leonardo AI failed, used fallback." : null
+            fallback_used: provider === 'dalle',
+            fallback_reason: provider === 'dalle' ? leoError.message : null
         });
 
     } catch (error) {

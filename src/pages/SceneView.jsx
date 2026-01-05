@@ -104,21 +104,29 @@ export default function SceneView() {
   });
 
   useEffect(() => {
-    if (character && currentScene) {
-        setCinematicData(null); // Reset when scene changes
-        setReactionNode(null);
-        setBetweenSceneData(null);
-        setIsCinematicLoading(true);
-        prepareSceneCinematic(character.id, currentScene.id).then(data => {
-            setCinematicData(data);
-        }).catch(err => {
-            console.error("Cinematic prep failed:", err);
-            toast.error("Visual systems offline. Using text-only mode.");
-        }).finally(() => {
-            setIsCinematicLoading(false);
-        });
-    }
-  }, [character?.id, currentScene?.id]);
+      if (character && currentScene) {
+          setCinematicData(null); // Reset when scene changes
+          setReactionNode(null);
+          setBetweenSceneData(null);
+          setIsCinematicLoading(true);
+          prepareSceneCinematic(character.id, currentScene.id).then(data => {
+              setCinematicData(data);
+              // Show warning if fallback was used
+              if (data?.fallback_used) {
+                  toast.warning("Leonardo AI unavailable - using DALL-E fallback", {
+                      description: data.fallback_reason || "Check Leonardo API key and credits"
+                  });
+              }
+          }).catch(err => {
+              console.error("Cinematic prep failed:", err);
+              toast.error("Visual systems offline", {
+                  description: err.message || "Using text-only mode"
+              });
+          }).finally(() => {
+              setIsCinematicLoading(false);
+          });
+      }
+    }, [character?.id, currentScene?.id]);
 
   const { data: choices = [] } = useQuery({
     queryKey: ['choices', currentScene?.id],
