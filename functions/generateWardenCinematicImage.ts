@@ -171,14 +171,13 @@ Deno.serve(async (req) => {
              // Since I can't easily add a UI toggle to the automated flow without modifying the SceneView calls, 
              // I'll randomize it slightly or just use Leonardo with advanced params.
              
-             // Let's use the standard Leonardo call but pass ALL refs.
+             // Use Leonardo with primary portrait reference
              const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
                 prompt,
                 negative_prompt: negativePrompt,
                 width: 1280, 
                 height: 720,
-                character_ref_urls: refUrls, // Pass ALL references
-                // init_image_url: portraitUrl // handled in array now
+                init_image_url: refUrls[0] || portraitUrl // Use first reference image
             });
             
             if (leoRes.data && !leoRes.data.error && leoRes.data.url) {
