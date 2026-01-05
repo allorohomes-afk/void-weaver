@@ -1,15 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Shield, Users, Zap, ChevronRight, X, Brain, Database } from 'lucide-react';
+import { Activity, Shield, Users, Zap, ChevronRight, X, Brain, Database, Volume2 } from 'lucide-react';
 import { toast } from "sonner";
+import VoicePlayer from '@/components/voice/VoicePlayer';
 
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, History, BarChart2 } from 'lucide-react';
 
 export default function DebugHUD({ character, factions, factionStatuses, lastEffect, isOpen, onToggle }) {
+  const [testVoiceUrl, setTestVoiceUrl] = useState(null);
+  const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
+
+  const handleTestVoice = async () => {
+    setIsGeneratingVoice(true);
+    try {
+      const res = await base44.functions.invoke('generateVoiceLine', {
+        text: "Welcome to the Void Weaver Initiative. Your resonance flow is stabilizing.",
+        character_id: character.id,
+        emotion: character.emotional_state || 'Neutral'
+      });
+      if (res.data?.audio_url) {
+        setTestVoiceUrl(res.data.audio_url);
+        toast.success("Voice generated successfully!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Voice generation failed");
+    } finally {
+      setIsGeneratingVoice(false);
+    }
+  };
+
   const handleSeedMission5 = async () => {
       try {
           toast.promise(base44.functions.invoke('seedMission5'), {
@@ -291,6 +315,32 @@ export default function DebugHUD({ character, factions, factionStatuses, lastEff
                   >
                       <Brain className="w-3 h-3 mr-2" /> View Skill Tree
                   </Button>
+
+                  <div className="pt-3 border-t border-slate-800">
+                      <h3 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest flex items-center">
+                          <Volume2 className="w-3 h-3 mr-1.5" /> Voice Test
+                      </h3>
+                      <Button 
+                          onClick={handleTestVoice}
+                          disabled={isGeneratingVoice}
+                          variant="outline"
+                          className="w-full border-cyan-500/30 hover:bg-cyan-950/30 text-cyan-300 text-xs mb-3"
+                      >
+                          {isGeneratingVoice ? (
+                              <>Generating Voice...</>
+                          ) : (
+                              <>
+                                  <Volume2 className="w-3 h-3 mr-2" />
+                                  Test Voice Generation
+                              </>
+                          )}
+                      </Button>
+                      {testVoiceUrl && (
+                          <div className="mb-3 p-2 bg-slate-900/50 rounded border border-cyan-500/20">
+                              <VoicePlayer audioUrl={testVoiceUrl} text="Test voice line" autoPlay={true} />
+                          </div>
+                      )}
+                  </div>
 
                   <div className="pt-3 border-t border-slate-800">
                       <h3 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest flex items-center">
