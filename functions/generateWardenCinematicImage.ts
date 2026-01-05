@@ -159,46 +159,26 @@ Deno.serve(async (req) => {
         let imageUrl = null;
         let provider = 'leonardo';
         
-        // Attempt Generation
-        try {
-             // HYBRID ATTEMPT (Experimental Feature)
-             // 1. Generate Composition with DALL-E
-             const dallePrompt = `Anime scene composition sketch. ${contextText}. Character: ${roleHint}. ${prompt.substring(0, 500)}`;
-             
-             // We only do hybrid if we want "variety" or robust structure.
-             // Let's use Hybrid if we have a lot of refs to ensure they stick to a coherent structure?
-             // Or just use Leonardo directly. The user asked for "Option to blend".
-             // Since I can't easily add a UI toggle to the automated flow without modifying the SceneView calls, 
-             // I'll randomize it slightly or just use Leonardo with advanced params.
-             
-             // Use Leonardo with primary portrait reference
-             const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
-                prompt,
-                negative_prompt: negativePrompt,
-                width: 1280, 
-                height: 720,
-                init_image_url: refUrls[0] || portraitUrl // Use first reference image
-            });
-            
-            if (leoRes.data && !leoRes.data.error && leoRes.data.url) {
-                imageUrl = leoRes.data.url;
-            } else {
-                throw new Error(leoRes.data?.error || "Unknown Leonardo error");
-            }
-
-        } catch (leoError) {
-             console.error("Leonardo generation failed, falling back to DALL-E:", leoError.message);
-             provider = 'dalle';
-             // ... DALL-E fallback code ...
-             try {
-                const dalleRes = await base44.integrations.Core.GenerateImage({
-                    prompt: prompt + " Anime style, cinematic, high quality, 1980s retro anime aesthetic." 
-                });
-                imageUrl = dalleRes.url;
-            } catch (dalleError) {
-                console.error("DALL-E generation failed:", dalleError);
-                throw new Error("All image generation methods failed. Visual systems offline.");
-            }
+        // Attempt Leonardo Generation
+        console.log(`[Leonardo] Attempting generation with ${refUrls.length} reference(s)...`);
+        const leoRes = await base44.functions.invoke('generateLeonardoImage', { 
+            prompt,
+            negative_prompt: negativePrompt,
+            width: 1280, 
+            height: 720,
+            init_image_url: refUrls[0] || portraitUrl,
+            init_strength: 0.5
+        });
+        
+        console.log("[Leonardo] Response:", JSON.stringify(leoRes.data));
+        
+        if (leoRes.data && !leoRes.data.error && leoRes.data.url) {
+            imageUrl = leoRes.data.url;
+            console.log("[Leonardo] ✓ Generation successful");
+        } else {
+            const errorMsg = leoRes.data?.error || "Unknown Leonardo error";
+            console.error("[Leonardo] ✗ Generation failed:", errorMsg);
+            throw new Error(`Leonardo AI Error: ${errorMsg}`);
         }
 
         return Response.json({ 
