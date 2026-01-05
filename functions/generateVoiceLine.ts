@@ -80,13 +80,15 @@ Deno.serve(async (req) => {
             throw new Error(`ElevenLabs API error: ${errorText}`);
         }
 
-        // Get audio data
+        // Get audio data as array buffer
         const audioData = await response.arrayBuffer();
 
+        // Create a File object for upload (Deno/server-side compatible)
+        const audioFile = new File([audioData], 'voice.mp3', { type: 'audio/mpeg' });
+        
         // Upload to Base44 storage
-        const audioBlob = new Blob([audioData], { type: 'audio/mpeg' });
         const uploadRes = await base44.asServiceRole.integrations.Core.UploadFile({
-            file: audioBlob
+            file: audioFile
         });
 
         return Response.json({
