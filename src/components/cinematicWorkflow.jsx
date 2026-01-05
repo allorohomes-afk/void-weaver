@@ -149,9 +149,7 @@ export const prepareSceneCinematic = async (characterId, sceneId) => {
 
     return {
         video_url: videoUrl,
-        audio_url: null,
-        fallback_used: imgRes.data?.fallback_used,
-        fallback_reason: imgRes.data?.fallback_reason
+        audio_url: null
     };
 };
 
