@@ -1,0 +1,18 @@
+{
+  "name": "EffectScript",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Effect script name"
+    },
+    "effect_json": {
+      "type": "object",
+      "description": "JSON object with stat/relationship/faction changes"
+    }
+  },
+  "required": [
+    "name",
+    "effect_json"
+  ]
+}

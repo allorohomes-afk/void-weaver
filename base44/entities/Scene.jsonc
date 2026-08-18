@@ -1,0 +1,44 @@
+{
+  "name": "Scene",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique scene key identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "Scene title"
+    },
+    "chapter": {
+      "type": "string",
+      "description": "Chapter name or number (e.g., 'Chapter 1: The Beginning')"
+    },
+    "body_text": {
+      "type": "string",
+      "description": "Scene narrative text"
+    },
+    "background_image_url": {
+      "type": "string",
+      "description": "Background image URL"
+    },
+    "is_terminal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a final scene"
+    },
+    "aggressor_npc_key": {
+      "type": "string",
+      "description": "Key of the aggressor NPC in this scene (if any)"
+    },
+    "vulnerable_npc_key": {
+      "type": "string",
+      "description": "Key of the vulnerable NPC in this scene (if any)"
+    }
+  },
+  "required": [
+    "key",
+    "title",
+    "body_text"
+  ]
+}

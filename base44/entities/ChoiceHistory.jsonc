@@ -1,0 +1,40 @@
+{
+  "name": "ChoiceHistory",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "choice_id": {
+      "type": "string",
+      "description": "Reference to Choice"
+    },
+    "effect_script_id": {
+      "type": "string",
+      "description": "Reference to EffectScript used"
+    },
+    "scene_id": {
+      "type": "string",
+      "description": "Reference to Scene where choice was made"
+    },
+    "mission_id": {
+      "type": "string",
+      "description": "Reference to Mission (optional)"
+    },
+    "microquest_id": {
+      "type": "string",
+      "description": "Reference to MicroQuest (optional)"
+    },
+    "applied": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether effects were applied"
+    }
+  },
+  "required": [
+    "character_id",
+    "choice_id",
+    "applied"
+  ]
+}

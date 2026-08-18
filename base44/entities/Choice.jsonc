@@ -1,0 +1,54 @@
+{
+  "name": "Choice",
+  "type": "object",
+  "properties": {
+    "scene_id": {
+      "type": "string",
+      "description": "Reference to Scene"
+    },
+    "label": {
+      "type": "string",
+      "description": "Choice button text"
+    },
+    "description": {
+      "type": "string",
+      "description": "Additional choice description"
+    },
+    "next_scene_id": {
+      "type": "string",
+      "description": "Reference to next Scene"
+    },
+    "effect_script_id": {
+      "type": "string",
+      "description": "Reference to EffectScript"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "Risk indicator"
+    },
+    "visual_role_hint": {
+      "type": "string",
+      "enum": [
+        "protector",
+        "aggressor",
+        "mediator",
+        "bystander",
+        "supporter"
+      ],
+      "description": "Visual role hint for cinematic generation"
+    },
+    "resonance_impact": {
+      "type": "integer",
+      "description": "How this choice affects Resonance Flow (-20 to +20). Positive for empathy/collaboration, negative for aggression/dismissiveness"
+    }
+  },
+  "required": [
+    "scene_id",
+    "label"
+  ]
+}

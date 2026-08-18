@@ -1,0 +1,32 @@
+{
+  "name": "SkillProgression",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "skill_key": {
+      "type": "string",
+      "description": "Key of the skill being progressed (e.g. 'relational_1', 'grounding_1')"
+    },
+    "current_xp": {
+      "type": "integer",
+      "default": 0,
+      "description": "Current experience points toward next level"
+    },
+    "level": {
+      "type": "integer",
+      "default": 1,
+      "description": "Current mastery level of the skill"
+    },
+    "last_updated_at": {
+      "type": "string",
+      "description": "Timestamp of last progress"
+    }
+  },
+  "required": [
+    "character_id",
+    "skill_key"
+  ]
+}

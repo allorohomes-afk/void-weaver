@@ -1,0 +1,36 @@
+{
+  "name": "EnvironmentalLog",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Log title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Log content"
+    },
+    "location_tag": {
+      "type": "string",
+      "description": "Where this log is found (e.g., 'Atrium', 'Datapad')"
+    },
+    "scene_id": {
+      "type": "string",
+      "description": "Scene where this log is discoverable"
+    },
+    "unlock_insight_req": {
+      "type": "integer",
+      "default": 0,
+      "description": "Insight needed to decode/find"
+    },
+    "is_encrypted": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, requires specific skill/stat to read"
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ]
+}

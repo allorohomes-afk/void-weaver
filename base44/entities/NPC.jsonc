@@ -1,0 +1,76 @@
+{
+  "name": "NPC",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique key for code references (e.g. 'sera', 'brann')"
+    },
+    "name": {
+      "type": "string",
+      "description": "NPC name"
+    },
+    "role": {
+      "type": "string",
+      "description": "NPC role"
+    },
+    "faction_id": {
+      "type": "string",
+      "description": "Reference to Faction"
+    },
+    "archetype": {
+      "type": "string",
+      "enum": [
+        "LostBoy",
+        "Breaker",
+        "Masksmith",
+        "Collector",
+        "Other"
+      ],
+      "description": "Legacy NPC archetype tag"
+    },
+    "personality_archetype_id": {
+      "type": "string",
+      "description": "Reference to PersonalityArchetype entity"
+    },
+    "personality": {
+      "type": "string",
+      "description": "Specific personality description/overrides for AI roleplay"
+    },
+    "voice_style": {
+      "type": "string",
+      "description": "Voice acting style notes (e.g. 'gruff, fast-talking')"
+    },
+    "energy_profile": {
+      "type": "object",
+      "description": "JSON object with energy data"
+    },
+    "portrait_url": {
+      "type": "string",
+      "description": "URL to portrait image"
+    },
+    "emotional_state": {
+      "type": "string",
+      "enum": [
+        "Neutral",
+        "Vulnerable",
+        "Resilient",
+        "Empathetic",
+        "Guarded",
+        "Volatile",
+        "Hopeful",
+        "Despondent"
+      ],
+      "default": "Neutral",
+      "description": "Current emotional resonance state"
+    },
+    "voice_settings": {
+      "type": "object",
+      "description": "ElevenLabs voice configuration: voice_id, stability, similarity_boost, style"
+    }
+  },
+  "required": [
+    "name",
+    "role"
+  ]
+}

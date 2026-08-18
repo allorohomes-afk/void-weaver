@@ -1,0 +1,26 @@
+{
+  "name": "PortraitHistory",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "portrait_url": {
+      "type": "string",
+      "description": "The URL of the portrait"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about this version"
+    },
+    "reverted_from_id": {
+      "type": "string",
+      "description": "If this was a revert, reference the history ID it was reverted from"
+    }
+  },
+  "required": [
+    "character_id",
+    "portrait_url"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "CharacterInvestigationClue",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "clue_id": {
+      "type": "string",
+      "description": "Reference to InvestigationClue"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "discovered",
+        "analyzed",
+        "missed"
+      ],
+      "default": "discovered",
+      "description": "Status of the clue for this character"
+    },
+    "detected_lie": {
+      "type": "boolean",
+      "default": false,
+      "description": "Did the player detect this was a lie?"
+    }
+  },
+  "required": [
+    "character_id",
+    "clue_id"
+  ]
+}

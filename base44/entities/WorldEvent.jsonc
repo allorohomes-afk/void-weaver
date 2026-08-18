@@ -1,0 +1,46 @@
+{
+  "name": "WorldEvent",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Headline or event title"
+    },
+    "content": {
+      "type": "string",
+      "description": "The main text of the event/news"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "broadcast",
+        "rumor",
+        "environmental_shift",
+        "system_alert"
+      ],
+      "description": "Type of event"
+    },
+    "trigger_scene_id": {
+      "type": "string",
+      "description": "Optional: Scene that triggered this"
+    },
+    "required_political_state": {
+      "type": "object",
+      "description": "Conditions for this event to appear"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Optional generated visual"
+    },
+    "display_duration": {
+      "type": "integer",
+      "default": 1,
+      "description": "How many scenes this persists"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "type"
+  ]
+}

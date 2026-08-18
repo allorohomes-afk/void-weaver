@@ -1,0 +1,46 @@
+{
+  "name": "InvestigationClue",
+  "type": "object",
+  "properties": {
+    "scene_id": {
+      "type": "string",
+      "description": "Reference to Scene"
+    },
+    "npc_id": {
+      "type": "string",
+      "description": "Reference to NPC (optional)"
+    },
+    "description": {
+      "type": "string",
+      "description": "The text of the clue or observation"
+    },
+    "is_truth": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a true clue?"
+    },
+    "is_misleading": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a misleading clue/lie?"
+    },
+    "insight_requirement": {
+      "type": "integer",
+      "default": 0,
+      "description": "Insight stat needed to spot this"
+    },
+    "required_skill_id": {
+      "type": "string",
+      "description": "Specific skill required to find this clue"
+    },
+    "unlocks_scene_id": {
+      "type": "string",
+      "description": "ID of a scene this clue might unlock (optional)"
+    }
+  },
+  "required": [
+    "scene_id",
+    "description",
+    "insight_requirement"
+  ]
+}

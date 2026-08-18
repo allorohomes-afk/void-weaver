@@ -1,0 +1,28 @@
+{
+  "name": "CharacterMicroQuest",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "microquest_id": {
+      "type": "string",
+      "description": "Reference to MicroQuest"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "failed"
+      ],
+      "default": "active",
+      "description": "Status of the quest"
+    }
+  },
+  "required": [
+    "character_id",
+    "microquest_id"
+  ]
+}

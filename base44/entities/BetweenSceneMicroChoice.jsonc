@@ -1,0 +1,37 @@
+{
+  "name": "BetweenSceneMicroChoice",
+  "type": "object",
+  "properties": {
+    "between_scene_id": {
+      "type": "string",
+      "description": "Reference to the BetweenScene"
+    },
+    "label": {
+      "type": "string",
+      "description": "The text of the micro-choice"
+    },
+    "skill_type": {
+      "type": "string",
+      "enum": [
+        "grounding",
+        "de_escalation",
+        "critical_thought",
+        "social_reading",
+        "emotional_literacy",
+        "peer_resistance",
+        "protector_stance",
+        "relational_skill"
+      ],
+      "description": "The type of skill being practiced"
+    },
+    "effect_script_id": {
+      "type": "string",
+      "description": "Reference to the EffectScript to apply"
+    }
+  },
+  "required": [
+    "between_scene_id",
+    "label",
+    "skill_type"
+  ]
+}

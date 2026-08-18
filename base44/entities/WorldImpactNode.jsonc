@@ -1,0 +1,48 @@
+{
+  "name": "WorldImpactNode",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "title": {
+      "type": "string",
+      "description": "Short title of the consequence"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed narrative of the impact on the world"
+    },
+    "region": {
+      "type": "string",
+      "description": "Affected region (e.g. Sector 4, The Spire)"
+    },
+    "ethical_alignment": {
+      "type": "string",
+      "enum": [
+        "Order",
+        "Chaos",
+        "Mercy",
+        "Ruthlessness",
+        "Balance"
+      ],
+      "description": "The ethical leaning of this consequence"
+    },
+    "severity": {
+      "type": "integer",
+      "default": 1,
+      "description": "Scale of impact 1-10"
+    },
+    "is_visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the player can see this yet"
+    }
+  },
+  "required": [
+    "character_id",
+    "title",
+    "description"
+  ]
+}

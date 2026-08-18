@@ -1,0 +1,35 @@
+{
+  "name": "CharacterFactionStatus",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "faction_id": {
+      "type": "string",
+      "description": "Reference to Faction"
+    },
+    "alignment": {
+      "type": "integer",
+      "default": 0,
+      "description": "Alignment score from -100 to 100"
+    },
+    "resonance_reputation": {
+      "type": "integer",
+      "default": 0,
+      "description": "Reputation for compassion/collaboration (0-100). Tracked separately from alignment to measure emotional intelligence approach"
+    },
+    "reputation_events": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Record of key actions that shaped this faction's view of the player"
+    }
+  },
+  "required": [
+    "character_id",
+    "faction_id"
+  ]
+}

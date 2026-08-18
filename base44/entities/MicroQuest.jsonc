@@ -1,0 +1,35 @@
+{
+  "name": "MicroQuest",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique key for the microquest"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title of the microquest"
+    },
+    "body_text": {
+      "type": "string",
+      "description": "Narrative content of the microquest"
+    },
+    "reward_effect_script_id": {
+      "type": "string",
+      "description": "Reference to EffectScript for rewards"
+    },
+    "unlock_condition": {
+      "type": "string",
+      "description": "Natural language rules for unlocking"
+    },
+    "completion_criteria": {
+      "type": "object",
+      "description": "JSON object defining completion rules (stats, clues_count, etc)"
+    }
+  },
+  "required": [
+    "key",
+    "title",
+    "body_text"
+  ]
+}

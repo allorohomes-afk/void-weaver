@@ -1,0 +1,51 @@
+{
+  "name": "SceneCinematics",
+  "type": "object",
+  "properties": {
+    "scene_id": {
+      "type": "string",
+      "description": "Reference to Scene"
+    },
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character (nullable for global)"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "URL to the generated video"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "URL to the generated audio"
+    },
+    "prompt_used": {
+      "type": "string",
+      "description": "The prompt used to generate the video"
+    },
+    "portrait_version": {
+      "type": "integer",
+      "default": 1,
+      "description": "The version of the portrait used for generation"
+    },
+    "reference_images_used": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of CharacterReferenceImage IDs used in this generation"
+    },
+    "provider_used": {
+      "type": "string",
+      "enum": [
+        "leonardo",
+        "dalle",
+        "hybrid"
+      ],
+      "description": "AI Provider used"
+    }
+  },
+  "required": [
+    "scene_id",
+    "video_url"
+  ]
+}

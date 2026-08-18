@@ -1,0 +1,55 @@
+{
+  "name": "LongTermEffect",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "source_mission_id": {
+      "type": "string",
+      "description": "Source mission (optional)"
+    },
+    "effect_type": {
+      "type": "string",
+      "enum": [
+        "political",
+        "reputation",
+        "masculine_shift",
+        "feminine_shift",
+        "stat_buff",
+        "stat_debuff"
+      ],
+      "description": "Type of effect"
+    },
+    "stats_delta": {
+      "type": "object",
+      "description": "JSON object of stat changes"
+    },
+    "factions_delta": {
+      "type": "object",
+      "description": "JSON object of faction changes"
+    },
+    "permanent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this effect permanent?"
+    },
+    "duration_scenes": {
+      "type": "integer",
+      "description": "Total duration in scenes"
+    },
+    "remaining_scenes": {
+      "type": "integer",
+      "description": "Scenes remaining before expiration"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the effect"
+    }
+  },
+  "required": [
+    "character_id",
+    "description"
+  ]
+}

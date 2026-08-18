@@ -1,0 +1,17 @@
+{
+  "name": "Faction",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Faction name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Faction description"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

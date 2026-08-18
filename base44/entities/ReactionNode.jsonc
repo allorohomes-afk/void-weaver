@@ -1,0 +1,55 @@
+{
+  "name": "ReactionNode",
+  "type": "object",
+  "properties": {
+    "choice_id": {
+      "type": "string",
+      "description": "Reference to the Choice made"
+    },
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character (nullable for generic reactions)"
+    },
+    "text": {
+      "type": "string",
+      "description": "Short cinematic reaction description"
+    },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "soft",
+        "tense",
+        "hopeful",
+        "awkward",
+        "relieved",
+        "ominous",
+        "neutral"
+      ],
+      "description": "Emotional tone of the reaction"
+    },
+    "npc_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Keys/IDs of NPCs mentioned in the reaction"
+    },
+    "microquest_id": {
+      "type": "string",
+      "description": "Reference to an optional MicroQuest"
+    },
+    "required_skill_id": {
+      "type": "string",
+      "description": "Skill required to trigger this specific reaction variant"
+    },
+    "effect_script_id": {
+      "type": "string",
+      "description": "Additional effects applied when this reaction triggers"
+    }
+  },
+  "required": [
+    "choice_id",
+    "text",
+    "tone"
+  ]
+}

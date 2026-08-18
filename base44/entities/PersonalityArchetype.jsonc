@@ -1,0 +1,63 @@
+{
+  "name": "PersonalityArchetype",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the archetype (e.g. 'The Cynical Broker')"
+    },
+    "social_mask": {
+      "type": "string",
+      "description": "The persona they project to the world when guard is up"
+    },
+    "true_nature": {
+      "type": "string",
+      "description": "Who they really are beneath the mask (revealed with Trust/Insight)"
+    },
+    "speaking_style": {
+      "type": "string",
+      "description": "Detailed notes on cadence, vocabulary, and sentence structure"
+    },
+    "behavioral_traits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of physical habits (e.g. 'Fidgets with coins')"
+    },
+    "vocal_tics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of verbal patterns (e.g. 'Uses slang', 'Stutters when lying')"
+    },
+    "motivations": {
+      "type": "string",
+      "description": "Core motivations driving this archetype"
+    },
+    "core_fear": {
+      "type": "string",
+      "description": "What this archetype fears most"
+    },
+    "core_desire": {
+      "type": "string",
+      "description": "What this archetype desires most"
+    },
+    "stress_triggers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Topics or actions that trigger a stress response"
+    },
+    "stress_response": {
+      "type": "string",
+      "description": "How they behave when cornered or threatened"
+    }
+  },
+  "required": [
+    "name",
+    "motivations"
+  ]
+}

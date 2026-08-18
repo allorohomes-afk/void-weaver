@@ -1,0 +1,76 @@
+{
+  "name": "NPCMemory",
+  "type": "object",
+  "properties": {
+    "npc_id": {
+      "type": "string",
+      "description": "Reference to NPC"
+    },
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "memory_type": {
+      "type": "string",
+      "enum": [
+        "conversation",
+        "witnessed_action",
+        "faction_event",
+        "resonance_shift",
+        "world_event",
+        "favor_exchange",
+        "emotional_moment"
+      ],
+      "description": "Category of memory entry"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of what happened"
+    },
+    "emotional_impact": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "negative",
+        "neutral",
+        "mixed"
+      ],
+      "description": "How this memory affects the NPC's view of the player"
+    },
+    "intensity": {
+      "type": "integer",
+      "default": 0,
+      "description": "Emotional intensity from 1 (minor) to 10 (life-changing)"
+    },
+    "player_resonance_at_time": {
+      "type": "integer",
+      "description": "Player's Resonance Flow score when this memory was created"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Keywords for easy retrieval (e.g., 'compassionate', 'aggressive', 'diplomatic', 'betrayal')"
+    },
+    "related_faction_id": {
+      "type": "string",
+      "description": "If this memory involves a faction"
+    },
+    "scene_id": {
+      "type": "string",
+      "description": "Where this memory took place"
+    },
+    "can_reference_in_dialogue": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether NPC can explicitly mention this memory"
+    }
+  },
+  "required": [
+    "npc_id",
+    "character_id",
+    "memory_type",
+    "summary"
+  ]
+}

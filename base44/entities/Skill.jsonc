@@ -1,0 +1,61 @@
+{
+  "name": "Skill",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique key (e.g., 'grounding_1')"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "grounding",
+        "relational",
+        "critical_thought",
+        "protector_stance",
+        "social_awareness",
+        "nd_sensitivity",
+        "peer_resistance",
+        "self_insight",
+        "political_awareness"
+      ],
+      "description": "Skill category"
+    },
+    "tier": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "Tier level"
+    },
+    "description": {
+      "type": "string",
+      "description": "Skill description"
+    },
+    "unlock_requirements": {
+      "type": "object",
+      "description": "JSON object defining criteria (stats, counts, etc.)"
+    },
+    "effects": {
+      "type": "object",
+      "description": "JSON object defining permanent effects (stats, politics)"
+    },
+    "cinematic_modifier": {
+      "type": "string",
+      "description": "Text to append to cinematic prompts if active"
+    },
+    "icon_url": {
+      "type": "string",
+      "description": "URL to the generated skill icon"
+    }
+  },
+  "required": [
+    "key",
+    "name",
+    "category",
+    "tier"
+  ]
+}

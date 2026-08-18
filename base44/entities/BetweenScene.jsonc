@@ -1,0 +1,52 @@
+{
+  "name": "BetweenScene",
+  "type": "object",
+  "properties": {
+    "trigger_scene_id": {
+      "type": "string",
+      "description": "Reference to the Scene that triggered this"
+    },
+    "trigger_choice_id": {
+      "type": "string",
+      "description": "Reference to the Choice that triggered this (nullable)"
+    },
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character (nullable if generic)"
+    },
+    "text": {
+      "type": "string",
+      "description": "The cinematic text of the between scene"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "walkway",
+        "peer_reaction",
+        "emotional_regulation",
+        "environmental",
+        "micro_skill",
+        "critical_thought"
+      ],
+      "description": "Category of the scene"
+    },
+    "next_microquest_scene_id": {
+      "type": "string",
+      "description": "Optional reference to a microquest scene to unlock"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Generated cinematic image URL"
+    },
+    "portrait_version": {
+      "type": "integer",
+      "default": 1,
+      "description": "The version of the portrait used for generation"
+    }
+  },
+  "required": [
+    "trigger_scene_id",
+    "text",
+    "category"
+  ]
+}

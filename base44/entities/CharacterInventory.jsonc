@@ -1,0 +1,35 @@
+{
+  "name": "CharacterInventory",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "resource_id": {
+      "type": "string",
+      "description": "Reference to Resource"
+    },
+    "quantity": {
+      "type": "integer",
+      "default": 1,
+      "description": "Amount held"
+    },
+    "acquired_via": {
+      "type": "string",
+      "enum": [
+        "scavenge",
+        "barter",
+        "gift",
+        "theft",
+        "crafting"
+      ],
+      "description": "How this specific batch was primarily acquired (for tracking patterns)"
+    }
+  },
+  "required": [
+    "character_id",
+    "resource_id",
+    "quantity"
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "name": "Character",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "name": {
+      "type": "string",
+      "description": "Character name"
+    },
+    "pronouns": {
+      "type": "string",
+      "description": "Character pronouns"
+    },
+    "age": {
+      "type": "integer",
+      "description": "Character age in years"
+    },
+    "skin_tone": {
+      "type": "string",
+      "description": "Visual description of skin tone"
+    },
+    "body_type_primary": {
+      "type": "string",
+      "description": "Primary body type tag"
+    },
+    "body_type_secondary": {
+      "type": "string",
+      "description": "Secondary body type tag (optional)"
+    },
+    "hair_length": {
+      "type": "string",
+      "description": "Length of hair"
+    },
+    "hair_texture": {
+      "type": "string",
+      "description": "Texture of hair"
+    },
+    "hair_color": {
+      "type": "string",
+      "description": "Color of hair"
+    },
+    "eye_color": {
+      "type": "string",
+      "description": "Color of eyes"
+    },
+    "gender_presentation": {
+      "type": "string",
+      "description": "Style of gender presentation"
+    },
+    "age_range": {
+      "type": "string",
+      "description": "Approximate age range (Legacy string)"
+    },
+    "face_vibe": {
+      "type": "string",
+      "description": "Expression or vibe of the face"
+    },
+    "outfit_style": {
+      "type": "string",
+      "enum": [
+        "streetops",
+        "starfleet",
+        "infiltrationsuit"
+      ],
+      "default": "streetops",
+      "description": "Void Weaver uniform style"
+    },
+    "character_visual_prompt": {
+      "type": "string",
+      "description": "Generated prompt for AI image generation"
+    },
+    "portrait_url": {
+      "type": "string",
+      "description": "URL of the generated portrait"
+    },
+    "current_scene_id": {
+      "type": "string",
+      "description": "Reference to current Scene"
+    },
+    "presence": {
+      "type": "integer",
+      "default": 0,
+      "description": "Presence stat"
+    },
+    "insight": {
+      "type": "integer",
+      "default": 0,
+      "description": "Insight stat"
+    },
+    "resolve": {
+      "type": "integer",
+      "default": 0,
+      "description": "Resolve stat"
+    },
+    "integrity": {
+      "type": "integer",
+      "default": 0,
+      "description": "Integrity stat"
+    },
+    "care": {
+      "type": "integer",
+      "default": 0,
+      "description": "Care stat"
+    },
+    "masculine_energy": {
+      "type": "integer",
+      "default": 50,
+      "description": "Action energy"
+    },
+    "feminine_energy": {
+      "type": "integer",
+      "default": 50,
+      "description": "Relational energy"
+    },
+    "fear_freeze": {
+      "type": "integer",
+      "default": 0,
+      "description": "Fear freeze counter"
+    },
+    "retaliation_risk": {
+      "type": "integer",
+      "default": 0,
+      "description": "Retaliation risk level"
+    },
+    "reference_photo_url": {
+      "type": "string",
+      "description": "URL to the user's uploaded reference photo"
+    },
+    "portrait_style_notes": {
+      "type": "string",
+      "description": "Additional creative notes for portrait stylization"
+    },
+    "recent_reaction_node_id": {
+      "type": "string",
+      "description": "Reference to the last ReactionNode experienced"
+    },
+    "portrait_reference_version": {
+      "type": "integer",
+      "default": 1,
+      "description": "Version number of the current portrait"
+    },
+    "last_updated_portrait_at": {
+      "type": "string",
+      "description": "Timestamp of last portrait update"
+    },
+    "emotional_state": {
+      "type": "string",
+      "enum": [
+        "Neutral",
+        "Vulnerable",
+        "Resilient",
+        "Empathetic",
+        "Guarded",
+        "Volatile",
+        "Hopeful",
+        "Despondent"
+      ],
+      "default": "Neutral",
+      "description": "Current emotional resonance state"
+    },
+    "max_inventory_slots": {
+      "type": "integer",
+      "default": 10,
+      "description": "Maximum number of distinct resource types character can carry. Limited to encourage critical thinking."
+    },
+    "resonance_flow": {
+      "type": "integer",
+      "default": 50,
+      "description": "Harmonic Alignment Index - measures emotional intelligence, empathy, and collaborative capacity (0-100)"
+    },
+    "voice_settings": {
+      "type": "object",
+      "description": "ElevenLabs voice configuration: voice_id, stability, similarity_boost, style"
+    }
+  },
+  "required": [
+    "user_id",
+    "name"
+  ]
+}

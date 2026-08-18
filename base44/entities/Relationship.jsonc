@@ -1,0 +1,53 @@
+{
+  "name": "Relationship",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "npc_id": {
+      "type": "string",
+      "description": "Reference to NPC"
+    },
+    "trust": {
+      "type": "integer",
+      "default": 0,
+      "description": "Trust level (-100 to 100)"
+    },
+    "favor_balance": {
+      "type": "integer",
+      "default": 0,
+      "description": "Net favor calculation. Positive = NPC owes Player. Negative = Player owes NPC."
+    },
+    "respect": {
+      "type": "integer",
+      "default": 0,
+      "description": "Respect level"
+    },
+    "safety": {
+      "type": "integer",
+      "default": 0,
+      "description": "Safety level"
+    },
+    "influence": {
+      "type": "integer",
+      "default": 0,
+      "description": "Influence level"
+    },
+    "grooming_risk": {
+      "type": "integer",
+      "default": 0,
+      "description": "Grooming risk counter"
+    },
+    "radicalization_risk": {
+      "type": "integer",
+      "default": 0,
+      "description": "Radicalization risk counter"
+    }
+  },
+  "required": [
+    "character_id",
+    "npc_id"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "PersonalGrowthRecord",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "archetype_title": {
+      "type": "string",
+      "description": "A poetic title for their current growth stage (e.g. 'The Wounded Healer')"
+    },
+    "narrative_summary": {
+      "type": "string",
+      "description": "AI generated paragraph describing their internal evolution"
+    },
+    "dominant_emotions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of most frequent emotional states"
+    },
+    "core_values": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Inferred values based on choices (e.g. 'Truth', 'Compassion')"
+    },
+    "world_impact_summary": {
+      "type": "string",
+      "description": "How their internal growth has affected the external world"
+    },
+    "evolution_stage": {
+      "type": "integer",
+      "default": 1,
+      "description": "Numeric stage of growth"
+    }
+  },
+  "required": [
+    "character_id",
+    "archetype_title"
+  ]
+}

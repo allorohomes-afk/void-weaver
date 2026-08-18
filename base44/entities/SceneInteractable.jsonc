@@ -1,0 +1,50 @@
+{
+  "name": "SceneInteractable",
+  "type": "object",
+  "properties": {
+    "scene_id": {
+      "type": "string",
+      "description": "Reference to the Scene"
+    },
+    "label": {
+      "type": "string",
+      "description": "Short label for the object (e.g. 'Rusty Terminal')"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "examine",
+        "interact",
+        "connect",
+        "recover",
+        "hack",
+        "loot",
+        "talk"
+      ],
+      "default": "examine",
+      "description": "Type of interaction"
+    },
+    "description": {
+      "type": "string",
+      "description": "Internal description for the LLM context"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Generated image of the object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "exhausted"
+      ],
+      "default": "active",
+      "description": "Current status of the object"
+    }
+  },
+  "required": [
+    "scene_id",
+    "label",
+    "type"
+  ]
+}

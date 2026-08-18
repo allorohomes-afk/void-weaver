@@ -1,0 +1,37 @@
+{
+  "name": "PoliticalState",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "old_guard_pressure": {
+      "type": "integer",
+      "default": 0,
+      "description": "Old Guard Pressure Level"
+    },
+    "lantern_influence": {
+      "type": "integer",
+      "default": 0,
+      "description": "Lantern Influence Level"
+    },
+    "brotherhood_shadow": {
+      "type": "integer",
+      "default": 0,
+      "description": "Brotherhood Shadow Level"
+    },
+    "public_sentiment": {
+      "type": "integer",
+      "default": 0,
+      "description": "Public Sentiment Level"
+    },
+    "last_updated_at": {
+      "type": "string",
+      "description": "Timestamp of last update"
+    }
+  },
+  "required": [
+    "character_id"
+  ]
+}

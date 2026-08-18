@@ -1,0 +1,40 @@
+{
+  "name": "FactionRelation",
+  "type": "object",
+  "properties": {
+    "source_faction_id": {
+      "type": "string",
+      "description": "The faction viewing the relationship"
+    },
+    "target_faction_id": {
+      "type": "string",
+      "description": "The faction being viewed"
+    },
+    "relationship_score": {
+      "type": "integer",
+      "default": 0,
+      "description": "Score from -100 (War) to 100 (Alliance)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ally",
+        "friendly",
+        "neutral",
+        "tension",
+        "hostile",
+        "war"
+      ],
+      "default": "neutral",
+      "description": "Categorical status of the relationship"
+    },
+    "last_incident_summary": {
+      "type": "string",
+      "description": "Short description of what caused the last shift"
+    }
+  },
+  "required": [
+    "source_faction_id",
+    "target_faction_id"
+  ]
+}

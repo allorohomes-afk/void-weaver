@@ -1,0 +1,36 @@
+{
+  "name": "PlayerJournalEntry",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "scene_id": {
+      "type": "string",
+      "description": "Reference to Scene where this was written"
+    },
+    "title": {
+      "type": "string",
+      "description": "Entry title"
+    },
+    "content": {
+      "type": "string",
+      "description": "The journal text content"
+    },
+    "mood_tag": {
+      "type": "string",
+      "description": "Emotional context of the entry"
+    },
+    "reflection_depth": {
+      "type": "integer",
+      "default": 1,
+      "description": "1-10 scale of how deep the introspection is"
+    }
+  },
+  "required": [
+    "character_id",
+    "content",
+    "title"
+  ]
+}

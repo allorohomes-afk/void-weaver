@@ -1,0 +1,71 @@
+{
+  "name": "Favor",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to the Player Character"
+    },
+    "npc_id": {
+      "type": "string",
+      "description": "Reference to the NPC involved"
+    },
+    "description": {
+      "type": "string",
+      "description": "Narrative description of what the favor entails"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "owed_by_player",
+        "owed_to_player"
+      ],
+      "description": "Who owes whom"
+    },
+    "value": {
+      "type": "string",
+      "enum": [
+        "trivial",
+        "minor",
+        "standard",
+        "major",
+        "life_debt"
+      ],
+      "default": "minor",
+      "description": "The weight or social value of the favor"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "fulfilled",
+        "reneged",
+        "expired"
+      ],
+      "default": "active",
+      "description": "Current state of the favor"
+    },
+    "emotional_context": {
+      "type": "string",
+      "enum": [
+        "transactional",
+        "mutual_aid",
+        "desperation",
+        "coercion",
+        "compassion"
+      ],
+      "default": "transactional",
+      "description": "The emotional or ethical context under which the favor was established"
+    },
+    "deadline_scene_id": {
+      "type": "string",
+      "description": "Optional: If the favor must be repaid by a certain scene/event"
+    }
+  },
+  "required": [
+    "character_id",
+    "npc_id",
+    "description",
+    "type"
+  ]
+}

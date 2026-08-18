@@ -1,0 +1,28 @@
+{
+  "name": "CharacterSkill",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "Reference to Character"
+    },
+    "skill_id": {
+      "type": "string",
+      "description": "Reference to Skill"
+    },
+    "unlocked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When it was unlocked"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Is skill currently active/toggled on"
+    }
+  },
+  "required": [
+    "character_id",
+    "skill_id"
+  ]
+}

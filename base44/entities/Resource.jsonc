@@ -1,0 +1,50 @@
+{
+  "name": "Resource",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the resource"
+    },
+    "description": {
+      "type": "string",
+      "description": "Flavor text describing the item"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "raw_material",
+        "data_shard",
+        "tech_component",
+        "biological",
+        "luxury",
+        "sustenance"
+      ],
+      "description": "Type of resource"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "legendary",
+        "contraband"
+      ],
+      "default": "common",
+      "description": "Scarcity of the item"
+    },
+    "sustainability_score": {
+      "type": "integer",
+      "description": "1-10 score indicating how ethical/sustainable this resource is to acquire/use"
+    },
+    "icon_name": {
+      "type": "string",
+      "description": "Lucide icon name reference"
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}
